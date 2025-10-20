@@ -2,6 +2,7 @@ import '@/index.css';
 import Providers from './providers';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AnalyticsClient from './analytics-client';
 
 export const metadata = {
   title: 'Babyfiction',
@@ -13,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Providers>
+          <AnalyticsClient />
           <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1 pt-20">{children}</main>

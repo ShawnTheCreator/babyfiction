@@ -11,6 +11,7 @@ import connectDB from './config/database.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import mediaRoutes from './routes/media.js';
+import analyticsRoutes from './routes/analytics.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -76,6 +77,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware
 app.use(notFound);

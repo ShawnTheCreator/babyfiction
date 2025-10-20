@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Star } from 'lucide-react';
+import { track } from '@/lib/analytics';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,14 @@ function CheckoutInner() {
     }
   }, [id]);
 
+  // Track checkout start when landing on this page
+  useEffect(() => {
+    // parse price string like "$19.99" to number
+    const num = typeof price === 'string' ? parseFloat(price.replace(/[^\d.]/g, '')) : NaN;
+    const amount = isNaN(num) ? undefined : num;
+    track({ type: 'checkout_start', amount });
+  }, [id]);
+
   const handlePay = async () => {
     setProcessing(true);
     try {
@@ -67,6 +76,9 @@ function CheckoutInner() {
     setRating(0);
     setComment('');
     toast({ title: 'Review added', description: 'Thanks for your feedback!' });
+    try {
+      track({ type: 'review_submitted', productId: id, rating });
+    } catch {}
   };
 
   return (
