@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchJson } from '@/lib/api';
+import { fetchJson, setAuthToken } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -9,21 +9,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const DEMO_USERS = {
-    user: {
-      email: 'shawnchareka7@gmail.com',
-      password: 'userpass123',
-      name: 'Shawn',
-      role: 'user',
-    },
-    admin: {
-      email: 'admin@babyfiction.com',
-      password: 'adminpass123',
-      name: 'Babyfiction Admin',
-      role: 'admin',
-    },
-  } as const;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,41 +19,20 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      const token = loginRes?.token;
+      if (token) setAuthToken(token);
       // After successful login, determine role and redirect accordingly
       try {
         const me: any = await fetchJson('/api/auth/me');
         const user = me?.data || me?.user || me;
         const role = user?.role;
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('babyfiction_demo_user', JSON.stringify({
-            email: user?.email,
-            name: user?.name,
-            role: role || 'user',
-          }));
-        }
         router.push(role === 'admin' ? '/admin' : '/');
       } catch {
         // Fallback: if /me fails, go home
         router.push('/');
       }
     } catch (err: any) {
-      const matchedDemo =
-        (email === DEMO_USERS.user.email && password === DEMO_USERS.user.password)
-          ? DEMO_USERS.user
-          : (email === DEMO_USERS.admin.email && password === DEMO_USERS.admin.password)
-            ? DEMO_USERS.admin
-            : null;
-
-      if (matchedDemo && typeof window !== 'undefined') {
-        localStorage.setItem('babyfiction_demo_user', JSON.stringify({
-          email: matchedDemo.email,
-          name: matchedDemo.name,
-          role: matchedDemo.role,
-        }));
-        router.push(matchedDemo.role === 'admin' ? '/admin' : '/');
-      } else {
-        setError(err?.message || 'Login failed');
-      }
+      setError(err?.message || 'Login failed');
     } finally {
       setLoading(false);
     }

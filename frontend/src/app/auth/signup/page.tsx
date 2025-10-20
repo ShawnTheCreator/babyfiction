@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchJson } from '@/lib/api';
+import { fetchJson, setAuthToken } from '@/lib/api';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,10 +23,12 @@ export default function SignupPage() {
     }
     setLoading(true);
     try {
-      await fetchJson('/api/auth/register', {
+      const res: any = await fetchJson('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ firstName: name, lastName: '', email, password }),
       });
+      const token = res?.token;
+      if (token) setAuthToken(token);
       router.push('/');
     } catch (err: any) {
       setError(err?.message || 'Signup failed');

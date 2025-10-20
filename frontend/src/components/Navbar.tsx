@@ -6,6 +6,7 @@ import { ShoppingCart, Search, User, Menu, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/lib/auth";
+import { fetchJson, getAuthToken } from "@/lib/api";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -21,17 +22,33 @@ const Navbar = () => {
       setScrolled(window.scrollY > 20);
     };
     window.addEventListener("scroll", handleScroll);
-    const syncCounts = () => {
+    const syncCounts = async () => {
       try {
-        const cartRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
-        const wishRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
-        const cart = cartRaw ? JSON.parse(cartRaw) : [];
-        const wish = wishRaw ? JSON.parse(wishRaw) : [];
-        setCartCount(Array.isArray(cart) ? cart.length : 0);
-        setWishlistCount(Array.isArray(wish) ? wish.length : 0);
+        const token = getAuthToken();
+        if (token) {
+          const res: any = await fetchJson('/api/cart/count');
+          setCartCount(typeof res?.count === 'number' ? res.count : 0);
+        } else {
+          const cartRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
+          const wishRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
+          const cart = cartRaw ? JSON.parse(cartRaw) : [];
+          const wish = wishRaw ? JSON.parse(wishRaw) : [];
+          setCartCount(Array.isArray(cart) ? cart.length : 0);
+          setWishlistCount(Array.isArray(wish) ? wish.length : 0);
+        }
       } catch {
-        setCartCount(0);
-        setWishlistCount(0);
+        // fallback
+        try {
+          const cartRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
+          const wishRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
+          const cart = cartRaw ? JSON.parse(cartRaw) : [];
+          const wish = wishRaw ? JSON.parse(wishRaw) : [];
+          setCartCount(Array.isArray(cart) ? cart.length : 0);
+          setWishlistCount(Array.isArray(wish) ? wish.length : 0);
+        } catch {
+          setCartCount(0);
+          setWishlistCount(0);
+        }
       }
     };
     syncCounts();
