@@ -1,9 +1,11 @@
 "use client";
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchJson, setAuthToken } from '@/lib/api';
 
-export default function SignupPage() {
+ export const dynamic = 'force-dynamic';
+
+ function SignupInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdmin = (searchParams.get('role') || '').toLowerCase() === 'admin';
@@ -125,5 +127,13 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
+      <SignupInner />
+    </Suspense>
   );
 }

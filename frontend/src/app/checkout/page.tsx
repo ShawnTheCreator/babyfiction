@@ -1,12 +1,14 @@
 "use client";
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Star } from 'lucide-react';
 
-export default function CheckoutPage() {
+export const dynamic = 'force-dynamic';
+
+function CheckoutInner() {
   const params = useSearchParams();
   const name = params.get('name') || params.get('product') || 'Selected Product';
   const price = params.get('price') || '—';
@@ -166,4 +168,10 @@ export default function CheckoutPage() {
   );
 }
 
-
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-5xl px-6 py-10 text-sm text-muted-foreground">Loading…</main>}>
+      <CheckoutInner />
+    </Suspense>
+  );
+}

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,11 +36,9 @@ const Products = () => {
     }
   }
 
-  if (products.length === 0) {
-    // fire and forget to fetch products on first render
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    loadProducts();
-  }
+  useEffect(() => {
+    void loadProducts();
+  }, []);
 
   const categories = ["all", "clothing", "shoes", "accessories", "bags", "jewelry", "watches"];
 
