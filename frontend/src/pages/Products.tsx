@@ -18,10 +18,19 @@ const Products = () => {
 
   async function loadProducts() {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/products`, { cache: 'no-store' });
+      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${base}/api/products?limit=24`, { cache: 'no-store' });
       if (!res.ok) throw new Error('Failed');
       const data = await res.json();
-      setProducts(data);
+      const list = Array.isArray(data?.products) ? data.products : [];
+      const mapped = list.map((p: any) => ({
+        id: p._id,
+        name: p.name,
+        price: p.price,
+        category: p.category,
+        image: p.thumbnail || (Array.isArray(p.images) ? p.images[0] : undefined),
+      }));
+      setProducts(mapped);
     } catch (e) {
       console.error('Failed to load products', e);
     }
@@ -33,7 +42,7 @@ const Products = () => {
     loadProducts();
   }
 
-  const categories = ["all", "Footwear", "Outerwear", "Accessories", "Bags"];
+  const categories = ["all", "clothing", "shoes", "accessories", "bags", "jewelry", "watches"];
 
   const filteredProducts =
     selectedCategory === "all"
@@ -103,7 +112,7 @@ const Products = () => {
               <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500 transform hover:rotate-y-6 hover:scale-105">
                 <div className="relative aspect-square overflow-hidden bg-secondary">
                   <img
-                    src={product.image}
+                    src={product.image || 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80'}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />

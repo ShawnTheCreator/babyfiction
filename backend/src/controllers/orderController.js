@@ -3,6 +3,7 @@ import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
 import { createError } from '../utils/errorUtils.js';
+import fetch from 'node-fetch';
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -356,10 +357,78 @@ export const validateCreateOrder = [
   body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
   body('shippingAddress').notEmpty().withMessage('Shipping address is required'),
   body('billingAddress').notEmpty().withMessage('Billing address is required'),
-  body('paymentMethod').isIn(['credit_card', 'paypal', 'stripe']).withMessage('Valid payment method is required'),
+  body('paymentMethod').isIn(['credit_card', 'paypal', 'stripe', 'payfast', 'yoco']).withMessage('Valid payment method is required'),
   body('shippingMethod').isIn(['standard', 'express', 'overnight']).withMessage('Valid shipping method is required')
 ];
 
 export const validateUpdateOrderStatus = [
   body('status').isIn(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).withMessage('Valid status is required')
 ];
+
+// --- Internet Express Shipping ---
+
+// @desc    Create Internet Express shipment (admin)
+// @route   POST /api/orders/:id/ship
+// @access  Private/Admin
+export const createInternetExpressShipment = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return next(createError('Order not found', 404));
+
+    // Basic guard
+    if (!order.shippingAddress) return next(createError('Shipping address missing', 400));
+
+    // Stub external call to Internet Express API
+    // In real integration, use process.env.INTERNET_EXPRESS_API_KEY and BASE_URL
+    const now = Date.now();
+    const fakeTracking = `IE${now}`;
+    const waybill = `WB${now}`;
+    const trackingUrl = `${process.env.INTERNET_EXPRESS_TRACK_URL || 'https://www.internetexpress.co.za/track/'}${fakeTracking}`;
+    const labelUrl = `${process.env.INTERNET_EXPRESS_LABEL_URL || 'https://example.com/label/'}${waybill}.pdf`;
+
+    order.status = 'shipped';
+    order.shipping = {
+      ...(order.shipping || {}),
+      courier: 'Internet Express',
+      service: req.body.service || 'standard',
+      trackingNumber: fakeTracking,
+      waybillNumber: waybill,
+      trackingUrl,
+      labelUrl,
+      status: 'in_transit',
+      dispatchedAt: new Date(),
+      estimatedDelivery: req.body.estimatedDelivery || undefined,
+      events: [
+        {
+          status: 'booked',
+          description: 'Shipment booked with Internet Express',
+          location: order.shippingAddress?.city,
+          timestamp: new Date(),
+        },
+      ],
+    };
+
+    await order.save();
+    res.json({ success: true, message: 'Shipment created', data: order });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get tracking info for an order (owner or admin)
+// @route   GET /api/orders/:id/tracking
+// @access  Private
+export const getOrderTracking = async (req, res, next) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return next(createError('Order not found', 404));
+
+    if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return next(createError('Not authorized to access this order', 403));
+    }
+
+    res.json({ success: true, data: order.shipping || {} });
+  } catch (error) {
+    next(error);
+  }
+};

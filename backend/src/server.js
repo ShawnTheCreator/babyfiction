@@ -10,6 +10,7 @@ import MongoStore from 'connect-mongo';
 import connectDB from './config/database.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
+import mediaRoutes from './routes/media.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -74,6 +75,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/media', mediaRoutes);
 
 // Error handling middleware
 app.use(notFound);

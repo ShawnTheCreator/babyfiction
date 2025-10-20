@@ -134,6 +134,24 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
     default: 'pending'
   },
+  shipping: {
+    courier: { type: String, enum: ['Internet Express', 'Other'], default: 'Internet Express' },
+    service: { type: String },
+    trackingNumber: { type: String },
+    waybillNumber: { type: String },
+    trackingUrl: { type: String },
+    labelUrl: { type: String },
+    status: { type: String, enum: ['pending', 'booked', 'in_transit', 'out_for_delivery', 'delivered', 'exception'], default: 'pending' },
+    dispatchedAt: { type: Date },
+    estimatedDelivery: { type: Date },
+    deliveredAt: { type: Date },
+    events: [{
+      status: String,
+      description: String,
+      location: String,
+      timestamp: { type: Date, default: Date.now }
+    }]
+  },
   trackingNumber: String,
   estimatedDelivery: Date,
   deliveredAt: Date,

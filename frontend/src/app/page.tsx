@@ -202,10 +202,7 @@ export default function HomePage() {
                 key={p.id}
                 className="group rounded border bg-white p-4 transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-up"
               >
-                <Link
-                  href={`/checkout?name=${encodeURIComponent(p.name)}&price=${encodeURIComponent(p.price)}&image=${encodeURIComponent(p.image)}&id=${encodeURIComponent(p.id)}`}
-                  className="block"
-                >
+                <Link href={`/product/${encodeURIComponent(p.id)}`} className="block">
                   <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded bg-gray-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -222,8 +219,7 @@ export default function HomePage() {
                     <span className="text-sm font-semibold">{p.price}</span>
                   </div>
                   {p.description && <p className="mt-2 text-sm">{p.description}</p>}
-                  <div className="mt-4 flex items-center justify-between">
-                    <span className="inline-block rounded bg-black px-3 py-2 text-white transition-colors duration-300 hover:bg-zinc-800">Go to Checkout</span>
+                  <div className="mt-4 flex items-center justify-end">
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
