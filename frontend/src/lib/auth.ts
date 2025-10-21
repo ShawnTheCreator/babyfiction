@@ -20,7 +20,16 @@ export function useCurrentUser() {
       try {
         const res: any = await fetchJson('/api/auth/me');
         const maybeUser = res?.data || res?.user || res;
-        if (active) setUser(maybeUser || null);
+        const normalized = maybeUser
+          ? {
+              ...maybeUser,
+              name:
+                maybeUser?.name ||
+                [maybeUser?.firstName, maybeUser?.lastName].filter(Boolean).join(' ') ||
+                undefined,
+            }
+          : null;
+        if (active) setUser(normalized);
       } catch {
         if (active) setUser(null);
       } finally {

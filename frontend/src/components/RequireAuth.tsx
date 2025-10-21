@@ -1,9 +1,12 @@
 "use client";
 import Link from 'next/link';
 import { useCurrentUser } from '@/lib/auth';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function RequireAuth({ children }: { children: React.ReactNode }) {
+export default function RequireAuth({ children, redirectTo }: { children: React.ReactNode; redirectTo?: string }) {
   const { user, loading } = useCurrentUser();
+  const router = useRouter();
 
   if (loading) {
     return (
@@ -14,6 +17,14 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   }
 
   if (!user) {
+    if (redirectTo) {
+      // Redirect unauthenticated users if a redirect target is provided
+      // Use an effect to avoid rendering on server
+      useEffect(() => {
+        router.replace(redirectTo);
+      }, [redirectTo]);
+      return null;
+    }
     return (
       <div className="mx-auto max-w-xl p-6 text-center">
         <h2 className="text-xl font-semibold">Sign in required</h2>

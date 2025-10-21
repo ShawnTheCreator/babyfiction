@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://babyfiction.onrender.com';
 
 export function getAuthToken(): string | null {
   try {
@@ -34,4 +34,22 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
   return res.json();
 }
 
-
+export async function fetchForm<T>(path: string, form: FormData, init?: RequestInit): Promise<T> {
+  const token = getAuthToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    body: form,
+    cache: 'no-store',
+    credentials: 'include',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers || {}),
+    },
+    ...(init || {}),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Request failed: ${res.status}`);
+  }
+  return res.json();
+}

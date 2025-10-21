@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { fetchJson, getAuthToken } from "@/lib/api";
+import { fetchJson, fetchForm, getAuthToken } from "@/lib/api";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -26,9 +26,110 @@ export default function NewProductPage() {
     isFeatured: false,
   });
 
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [thumbDragOver, setThumbDragOver] = useState(false);
+  const imagesList = form.images.split(',').map((s) => s.trim()).filter(Boolean);
+
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked } = e.target as any;
     setForm((prev) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+  };
+
+  const onThumbFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    if (!f) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', f);
+      const res: any = await fetchForm('/api/media/upload', fd);
+      if (res?.url) setForm((prev) => ({ ...prev, thumbnail: res.url, images: prev.images ? `${prev.images}, ${res.url}` : res.url }));
+    } catch (err: any) {
+      setUploadError(err?.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const pickImagesRef = (typeof window !== 'undefined') ? (document?.createElement ? (document.createElement('input') as HTMLInputElement) : null) : null;
+  if (pickImagesRef && !pickImagesRef.onchange) {
+    pickImagesRef.type = 'file';
+    pickImagesRef.accept = 'image/*';
+    pickImagesRef.multiple = true;
+    pickImagesRef.onchange = (e: any) => onFilesChange(e as React.ChangeEvent<HTMLInputElement>);
+  }
+
+  const onImagesDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const dt = e.dataTransfer;
+    const dropped = dt?.files ? Array.from(dt.files).filter(f => f.type.startsWith('image/')) : [];
+    if (dropped.length) {
+      setFiles((prev) => [...prev, ...dropped]);
+    }
+  };
+
+  const onThumbDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setThumbDragOver(false);
+    const dt = e.dataTransfer;
+    const file = dt?.files && dt.files[0] && dt.files[0].type.startsWith('image/') ? dt.files[0] : null;
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res: any = await fetchForm('/api/media/upload', fd);
+      if (res?.url) setForm((prev) => ({ ...prev, thumbnail: res.url, images: prev.images ? `${prev.images}, ${res.url}` : res.url }));
+    } catch (err: any) {
+      setUploadError(err?.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const onFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError(null);
+    const list = e.target.files ? Array.from(e.target.files) : [];
+    setFiles(list);
+  };
+
+  const uploadSelected = async () => {
+    if (!files.length) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const urls: string[] = [];
+      for (const f of files) {
+        const formData = new FormData();
+        formData.append('file', f);
+        const res: any = await fetchForm('/api/media/upload', formData);
+        if (res?.url) urls.push(res.url);
+      }
+      setFiles([]);
+      if (urls.length) {
+        setForm((prev) => {
+          const prevList = prev.images.split(',').map((s) => s.trim()).filter(Boolean);
+          const nextList = [...prevList, ...urls];
+          return {
+            ...prev,
+            images: nextList.join(', '),
+            thumbnail: prev.thumbnail || nextList[0] || '',
+          };
+        });
+      }
+    } catch (err: any) {
+      setUploadError(err?.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -41,17 +142,34 @@ export default function NewProductPage() {
         router.push('/auth/login');
         return;
       }
+      const allowedCategories = ['clothing','shoes','accessories','bags','jewelry','watches'];
+      if (!allowedCategories.includes((form.category || '').toLowerCase())) {
+        setError('Category must be one of: ' + allowedCategories.join(', '));
+        setSubmitting(false);
+        return;
+      }
       const imagesArr = form.images.split(',').map((s) => s.trim()).filter(Boolean);
+      if (imagesArr.length === 0) {
+        setError('At least one image URL is required. Upload images to auto-fill or paste URLs.');
+        setSubmitting(false);
+        return;
+      }
       const payload: any = {
         name: form.name,
         description: form.description,
         price: Number(form.price),
-        sku: form.sku,
-        category: form.category,
+        sku: (form.sku || '').toUpperCase(),
+        category: (form.category || 'clothing'),
         brand: form.brand,
         images: imagesArr,
         thumbnail: form.thumbnail || imagesArr[0],
-        stock: { quantity: Number(form.stockQuantity), lowStockThreshold: 5, trackQuantity: true },
+        // include both to satisfy validator and schema
+        countInStock: Math.max(0, Number(form.stockQuantity) || 0),
+        stock: {
+          quantity: Math.max(0, Number(form.stockQuantity) || 0),
+          lowStockThreshold: 5,
+          trackQuantity: true,
+        },
         isFeatured: !!form.isFeatured,
       };
       const res: any = await fetchJson('/api/products', { method: 'POST', body: JSON.stringify(payload) });
@@ -98,20 +216,88 @@ export default function NewProductPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Category</label>
-                <Input name="category" value={form.category} onChange={onChange} placeholder="clothing" required />
+                <select
+                  name="category"
+                  value={form.category}
+                  onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
+                  className="mt-1 w-full rounded-md border px-3 py-2 bg-background"
+                  required
+                >
+                  <option value="clothing">clothing</option>
+                  <option value="shoes">shoes</option>
+                  <option value="accessories">accessories</option>
+                  <option value="bags">bags</option>
+                  <option value="jewelry">jewelry</option>
+                  <option value="watches">watches</option>
+                </select>
               </div>
               <div>
                 <label className="text-sm font-medium">Brand</label>
                 <Input name="brand" value={form.brand} onChange={onChange} required />
               </div>
             </div>
-            <div>
-              <label className="text-sm font-medium">Images (comma-separated URLs)</label>
-              <Input name="images" value={form.images} onChange={onChange} placeholder="https://.../a.jpg, https://.../b.jpg" required />
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Images</label>
+              <Input name="images" value={form.images} onChange={onChange} placeholder="https://.../a.jpg, https://.../b.jpg" />
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onImagesDrop}
+                className={`mt-1 rounded-md border-2 border-dashed ${dragOver ? 'border-foreground bg-foreground/5' : 'border-border'} p-6 text-center`}
+              >
+                <div className="text-sm text-muted-foreground mb-3">Drag & drop images here or select files</div>
+                <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+                  <input type="file" accept="image/*" multiple onChange={onFilesChange}
+                    className="block w-full sm:w-auto text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-foreground hover:file:bg-secondary/80" />
+                  <Button type="button" onClick={uploadSelected} disabled={!files.length || uploading}>
+                    {uploading ? 'Uploading…' : `Upload ${files.length ? `(${files.length})` : ''}`}
+                  </Button>
+                </div>
+              </div>
+              {uploadError && <div className="text-sm text-red-600">{uploadError}</div>}
+              {(files.length > 0 || imagesList.length > 0) && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-2">
+                  {files.map((f, i) => (
+                    <div key={`f-${i}`} className="relative rounded-md overflow-hidden border">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={URL.createObjectURL(f)} alt={f.name} className="h-28 w-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/50 text-white text-xs px-2 py-1 truncate">{f.name}</div>
+                    </div>
+                  ))}
+                  {imagesList.map((url, i) => (
+                    <div key={`u-${i}`} className={`relative rounded-md overflow-hidden border ${form.thumbnail === url ? 'ring-2 ring-primary' : ''}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`image-${i}`} className="h-28 w-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/50 px-2 py-1 flex items-center justify-between gap-2">
+                        <span className="text-[11px] text-white truncate">{url}</span>
+                        <Button type="button" size="sm" variant="secondary" onClick={() => setForm((p) => ({ ...p, thumbnail: url }))}>
+                          Set thumbnail
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div>
-              <label className="text-sm font-medium">Thumbnail (URL)</label>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Thumbnail</label>
               <Input name="thumbnail" value={form.thumbnail} onChange={onChange} placeholder="Defaults to first image" />
+              <div
+                onDragOver={(e) => { e.preventDefault(); setThumbDragOver(true); }}
+                onDragLeave={() => setThumbDragOver(false)}
+                onDrop={onThumbDrop}
+                className={`mt-1 rounded-md border-2 border-dashed ${thumbDragOver ? 'border-foreground bg-foreground/5' : 'border-border'} p-6 text-center`}
+              >
+                <div className="text-sm text-muted-foreground mb-3">Drag & drop a thumbnail image here or select a file</div>
+                <input type="file" accept="image/*" onChange={onThumbFileChange}
+                  className="block w-full sm:w-auto text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-foreground hover:file:bg-secondary/80" />
+                {form.thumbnail && (
+                  <div className="mt-4 mx-auto max-w-xs rounded-md overflow-hidden border">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.thumbnail} alt="thumbnail" className="w-full h-40 object-cover" />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

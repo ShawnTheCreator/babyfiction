@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Star } from 'lucide-react';
 import { track } from '@/lib/analytics';
+import RequireAuth from '@/components/RequireAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -182,8 +183,10 @@ function CheckoutInner() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<main className="mx-auto max-w-5xl px-6 py-10 text-sm text-muted-foreground">Loading…</main>}>
-      <CheckoutInner />
-    </Suspense>
+    <RequireAuth redirectTo="/auth/login">
+      <Suspense fallback={<main className="mx-auto max-w-5xl px-6 py-10 text-sm text-muted-foreground">Loading…</main>}>
+        <CheckoutInner />
+      </Suspense>
+    </RequireAuth>
   );
 }

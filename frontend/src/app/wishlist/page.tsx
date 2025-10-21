@@ -5,6 +5,7 @@ import { Heart, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { fetchJson, getAuthToken } from "@/lib/api";
+import RequireAuth from "@/components/RequireAuth";
 
 type WishItem = { id: string; name: string; price?: string; image?: string };
 
@@ -64,6 +65,7 @@ export default function WishlistPage() {
   }
 
   return (
+    <RequireAuth redirectTo="/auth/login">
     <div className="min-h-screen pt-32 pb-20">
       <div className="max-w-[1200px] mx-auto px-6">
         <div className="flex items-center gap-3 mb-8 animate-fade-up">
@@ -114,5 +116,6 @@ export default function WishlistPage() {
         )}
       </div>
     </div>
+    </RequireAuth>
   );
 }

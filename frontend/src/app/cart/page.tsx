@@ -1,7 +1,12 @@
 import Cart from "@/pages/Cart";
+import RequireAuth from "@/components/RequireAuth";
 
 export default function Page() {
-  return <Cart />;
+  return (
+    <RequireAuth redirectTo="/auth/login">
+      <Cart />
+    </RequireAuth>
+  );
 }
 
 
