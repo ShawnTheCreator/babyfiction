@@ -33,7 +33,8 @@ app.use(compression());
 const allowedOrigins = [
   'http://localhost:3000',
   'https://babyfiction.vercel.app',
-  'https://www.babyfiction.vercel.app'
+  'https://www.babyfiction.vercel.app',
+  'https://babyfictions.netlify.app'
 ];
 
 app.use(cors({

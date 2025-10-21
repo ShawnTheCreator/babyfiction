@@ -28,8 +28,16 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
     credentials: 'include',
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `Request failed: ${res.status}`);
+    let msg = '';
+    try {
+      const data = await res.json();
+      msg = data?.message || data?.error || (Array.isArray(data?.errors) ? data.errors.map((e: any) => e.msg || e.message).join(', ') : '');
+    } catch {
+      try { msg = await res.text(); } catch { msg = ''; }
+    }
+    const err: any = new Error(msg || `Request failed: ${res.status}`);
+    err.status = res.status;
+    throw err;
   }
   return res.json();
 }
@@ -48,8 +56,16 @@ export async function fetchForm<T>(path: string, form: FormData, init?: RequestI
     ...(init || {}),
   });
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(text || `Request failed: ${res.status}`);
+    let msg = '';
+    try {
+      const data = await res.json();
+      msg = data?.message || data?.error || (Array.isArray(data?.errors) ? data.errors.map((e: any) => e.msg || e.message).join(', ') : '');
+    } catch {
+      try { msg = await res.text(); } catch { msg = ''; }
+    }
+    const err: any = new Error(msg || `Request failed: ${res.status}`);
+    err.status = res.status;
+    throw err;
   }
   return res.json();
 }

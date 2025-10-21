@@ -77,7 +77,9 @@ export default function LoginPage() {
         router.push('/');
       }
     } catch (err: any) {
-      setError(err?.message || 'Login failed');
+      const status = (err && typeof err === 'object' && 'status' in err) ? (err as any).status : undefined;
+      if (status === 401) setError('Invalid email or password');
+      else setError(err?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
