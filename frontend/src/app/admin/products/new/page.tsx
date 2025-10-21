@@ -142,8 +142,9 @@ export default function NewProductPage() {
         router.push('/auth/login');
         return;
       }
-      const allowedCategories = ['clothing','shoes','accessories','bags','jewelry','watches'];
-      if (!allowedCategories.includes((form.category || '').toLowerCase())) {
+      const allowedCategories = ['clothing','shoes','accessories','bags','jewelry','watches','hats','pants','shirts','hoodies'];
+      const selectedCat = (form.category || '').toLowerCase();
+      if (!allowedCategories.includes(selectedCat)) {
         setError('Category must be one of: ' + allowedCategories.join(', '));
         setSubmitting(false);
         return;
@@ -154,15 +155,25 @@ export default function NewProductPage() {
         setSubmitting(false);
         return;
       }
+      // Map UI-only categories to backend-supported enum if needed
+      const uiToBackendMap: Record<string, string> = {
+        hats: 'clothing',
+        pants: 'clothing',
+        shirts: 'clothing',
+        hoodies: 'clothing',
+      };
+      const backendCategory = uiToBackendMap[selectedCat] || selectedCat;
+      const subcategory = uiToBackendMap[selectedCat] ? selectedCat : undefined;
       const payload: any = {
         name: form.name,
         description: form.description,
         price: Number(form.price),
         sku: (form.sku || '').toUpperCase(),
-        category: (form.category || 'clothing'),
+        category: backendCategory,
         brand: form.brand,
         images: imagesArr,
         thumbnail: form.thumbnail || imagesArr[0],
+        ...(subcategory ? { subcategory } : {}),
         // include both to satisfy validator and schema
         countInStock: Math.max(0, Number(form.stockQuantity) || 0),
         stock: {
@@ -229,6 +240,10 @@ export default function NewProductPage() {
                   <option value="bags">bags</option>
                   <option value="jewelry">jewelry</option>
                   <option value="watches">watches</option>
+                  <option value="hats">hats</option>
+                  <option value="pants">pants</option>
+                  <option value="shirts">shirts</option>
+                  <option value="hoodies">hoodies</option>
                 </select>
               </div>
               <div>

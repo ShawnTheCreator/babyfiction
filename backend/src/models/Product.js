@@ -30,7 +30,7 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['clothing', 'shoes', 'accessories', 'bags', 'jewelry', 'watches']
+    enum: ['clothing', 'shoes', 'accessories', 'bags', 'jewelry', 'watches', 'hats', 'pants', 'shirts', 'hoodies']
   },
   subcategory: {
     type: String,
