@@ -22,14 +22,7 @@ export function useCurrentUser() {
         const maybeUser = res?.data || res?.user || res;
         if (active) setUser(maybeUser || null);
       } catch {
-        // Fallback to demo user from localStorage if available
-        try {
-          const raw = typeof window !== 'undefined' ? localStorage.getItem('babyfiction_demo_user') : null;
-          const demoUser = raw ? JSON.parse(raw) : null;
-          if (active) setUser(demoUser || null);
-        } catch {
-          if (active) setUser(null);
-        }
+        if (active) setUser(null);
       } finally {
         if (active) setLoading(false);
       }

@@ -1,144 +1,53 @@
 "use client";
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Heart, ShoppingCart } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Sparkles, ArrowRight, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { fetchJson, getAuthToken } from '@/lib/api';
+
+type UiProduct = { id: string; name: string; price: string; image: string; category?: string; description?: string };
 
 export default function HomePage() {
-  const addToCart = (item: { id: string; name: string; price: string; image: string }) => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
-      const cart = raw ? JSON.parse(raw) : [];
-      const next = Array.isArray(cart) ? [...cart, item] : [item];
-      localStorage.setItem('bf_cart', JSON.stringify(next));
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('bf_cart_updated'));
-      }
-    } catch {}
-  };
+  const [products, setProducts] = useState<UiProduct[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const toggleWishlist = (item: { id: string; name: string; price: string; image: string }) => {
-    try {
-      const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
-      const list = raw ? JSON.parse(raw) : [];
-      const exists = Array.isArray(list) && list.find((x: any) => x?.id === item.id);
-      const next = exists ? list.filter((x: any) => x?.id !== item.id) : [...(Array.isArray(list) ? list : []), item];
-      localStorage.setItem('bf_wishlist', JSON.stringify(next));
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('bf_wishlist_updated'));
-      }
-    } catch {}
-  };
-  const products = [
-    // Hats & Caps (R150 inferred for caps without explicit price)
-    {
-      id: 'cap-black',
-      name: 'Black Cap',
-      price: 'R150',
-      image: '/BlackCap.jpeg',
-      category: 'Hats',
-      description: 'Distressed trucker style cap in black.'
-    },
-    {
-      id: 'cap-blue',
-      name: 'Blue Cap',
-      price: 'R150',
-      image: '/BlueCap.jpeg',
-      category: 'Hats',
-      description: 'Distressed trucker style cap in blue.'
-    },
-    {
-      id: 'cap-red',
-      name: 'Red Cap',
-      price: 'R150',
-      image: '/RedCap.jpeg',
-      category: 'Hats',
-      description: 'Distressed trucker style cap in red.'
-    },
-    {
-      id: 'hat-distressed-1',
-      name: 'Distressed Trucker Hat',
-      price: 'R150',
-      image: '/DISTRESSED TRUCKER HATS-R150 .png',
-      category: 'Hats',
-      description: 'Vintage-wash distressed trucker hat.'
-    },
-    {
-      id: 'hat-distressed-2',
-      name: 'Distressed Trucker Hat (Style 2)',
-      price: 'R150',
-      image: '/2ndDISTRESSED TRUCKER HATS-R150 .png',
-      category: 'Hats',
-      description: 'Second style of distressed trucker hat.'
-    },
-    {
-      id: 'hat-distressed-3',
-      name: 'Distressed Trucker Hat (Style 3)',
-      price: 'R150',
-      image: '/3rdDISTRESSED TRUCKER HATS-R150 .png',
-      category: 'Hats',
-      description: 'Third style of distressed trucker hat.'
-    },
-
-    // Hoodies (R650)
-    {
-      id: 'hoodie-black-650',
-      name: 'Black Hoodie',
-      price: 'R650',
-      image: '/BlackHoodie650.jpeg',
-      category: 'Hoodies',
-      description: 'Midweight black hoodie.'
-    },
-    {
-      id: 'hoodie-black-650-2',
-      name: 'Black Hoodie (Style 2)',
-      price: 'R650',
-      image: '/2ndBlackHoodie650.jpeg',
-      category: 'Hoodies',
-      description: 'Alternate style black hoodie.'
-    },
-
-    // Shirts & Tees (R400)
-    {
-      id: 'shirt-black-400',
-      name: 'Black Shirt',
-      price: 'R400',
-      image: '/BlackShirt400.jpeg',
-      category: 'Shirts',
-      description: 'Classic black t-shirt.'
-    },
-    {
-      id: 'shirt-black-400-2',
-      name: 'Black Shirt (Style 2)',
-      price: 'R400',
-      image: '/2ndBlACKsHIRT400.jpeg',
-      category: 'Shirts',
-      description: 'Second style black t-shirt.'
-    },
-    {
-      id: 'shirt-white-400',
-      name: 'White Shirt',
-      price: 'R400',
-      image: '/WhiteShirt 400.png',
-      category: 'Shirts',
-      description: 'Classic white t-shirt.'
-    },
-    {
-      id: 'shirt-white-400-2',
-      name: 'White Shirt (Style 2)',
-      price: 'R400',
-      image: '/2ndWhiteShirt400.png',
-      category: 'Shirts',
-      description: 'Second style white t-shirt.'
-    },
-    {
-      id: 'shirt-skull-400',
-      name: 'Skull Fire T-Shirt',
-      price: 'R400',
-      image: '/SKULL FIRE TSHIRT400.jpeg',
-      category: 'Shirts',
-      description: 'Skull fire graphic tee.'
+  const addToCart = async (item: { id: string; name: string; price: string; image: string }) => {
+    const token = getAuthToken();
+    if (!token) {
+      if (typeof window !== 'undefined') window.location.href = '/auth/login';
+      return;
     }
-  ];
+    try {
+      await fetchJson('/api/cart/items', {
+        method: 'POST',
+        body: JSON.stringify({ product: item.id, quantity: 1 })
+      });
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
+    } catch {}
+  };
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res: any = await fetchJson('/api/products/featured?limit=9');
+        const list = Array.isArray(res?.products) ? res.products : [];
+        const mapped: UiProduct[] = list.map((p: any) => ({
+          id: p._id,
+          name: p.name,
+          price: typeof p.price === 'number' ? `R${p.price.toFixed(2)}` : String(p.price ?? ''),
+          image: p.thumbnail || (Array.isArray(p.images) ? p.images[0] : ''),
+          category: p.category,
+          description: p.description,
+        }));
+        if (active) setProducts(mapped);
+      } catch {
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   return (
     <main className="animate-fade-in">
@@ -196,6 +105,7 @@ export default function HomePage() {
         {/* Featured Products */}
         <section id="products" className="mx-auto max-w-6xl px-6 py-10">
           <h2 className="mb-4 text-xl font-semibold">Featured Products</h2>
+          {loading && <div className="p-6 text-sm">Loading products...</div>}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((p) => (
               <article
@@ -214,39 +124,25 @@ export default function HomePage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-lg font-medium">{p.name}</h3>
-                      <p className="text-sm text-muted-foreground">{p.category}</p>
+                      {p.category && <p className="text-sm text-muted-foreground">{p.category}</p>}
                     </div>
                     <span className="text-sm font-semibold">{p.price}</span>
                   </div>
                   {p.description && <p className="mt-2 text-sm">{p.description}</p>}
                   <div className="mt-4 flex items-center justify-end">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          addToCart({ id: p.id, name: p.name, price: p.price, image: p.image });
-                        }}
-                        className="gap-2"
-                        title="Add to cart"
-                      >
-                        <ShoppingCart className="h-4 w-4" /> Add to Cart
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          toggleWishlist({ id: p.id, name: p.name, price: p.price, image: p.image });
-                        }}
-                        title="Add to wishlist"
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        addToCart({ id: p.id, name: p.name, price: p.price, image: p.image });
+                      }}
+                      className="gap-2"
+                      title="Add to cart"
+                    >
+                      <ShoppingCart className="h-4 w-4" /> Add to Cart
+                    </Button>
                   </div>
                 </Link>
               </article>

@@ -6,7 +6,7 @@ import { ShoppingCart, Search, User, Menu, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/lib/auth";
-import { fetchJson, getAuthToken } from "@/lib/api";
+import { fetchJson, getAuthToken, setAuthToken } from "@/lib/api";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -17,6 +17,18 @@ const Navbar = () => {
   const pathname = usePathname();
   const { user } = useCurrentUser();
 
+  const handleLogout = () => {
+    try {
+      setAuthToken(null);
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('babyfiction_demo_user');
+      }
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -26,29 +38,19 @@ const Navbar = () => {
       try {
         const token = getAuthToken();
         if (token) {
-          const res: any = await fetchJson('/api/cart/count');
-          setCartCount(typeof res?.count === 'number' ? res.count : 0);
+          const [cartRes, wishRes]: any = await Promise.all([
+            fetchJson('/api/cart/count'),
+            fetchJson('/api/wishlist/count')
+          ]);
+          setCartCount(typeof cartRes?.count === 'number' ? cartRes.count : 0);
+          setWishlistCount(typeof wishRes?.count === 'number' ? wishRes.count : 0);
         } else {
-          const cartRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
-          const wishRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
-          const cart = cartRaw ? JSON.parse(cartRaw) : [];
-          const wish = wishRaw ? JSON.parse(wishRaw) : [];
-          setCartCount(Array.isArray(cart) ? cart.length : 0);
-          setWishlistCount(Array.isArray(wish) ? wish.length : 0);
-        }
-      } catch {
-        // fallback
-        try {
-          const cartRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
-          const wishRaw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
-          const cart = cartRaw ? JSON.parse(cartRaw) : [];
-          const wish = wishRaw ? JSON.parse(wishRaw) : [];
-          setCartCount(Array.isArray(cart) ? cart.length : 0);
-          setWishlistCount(Array.isArray(wish) ? wish.length : 0);
-        } catch {
           setCartCount(0);
           setWishlistCount(0);
         }
+      } catch {
+        setCartCount(0);
+        setWishlistCount(0);
       }
     };
     syncCounts();
@@ -60,6 +62,7 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
+    { name: "Home", path: "/" },
     { name: "Hats", path: "/catalog?category=hats" },
     { name: "Shirts", path: "/catalog?category=shirts" },
     { name: "Hoodies", path: "/catalog?category=hoodies" },
@@ -85,8 +88,11 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
+          <div className="hidden md:flex items-center gap-8 transition-all duration-300">
+            {navLinks.filter((link) => {
+              const base = link.path.split("?")[0];
+              return !pathname.startsWith(base);
+            }).map((link) => (
               <Link
                 key={`${link.path}-${link.name}`}
                 href={link.path}
@@ -122,9 +128,10 @@ const Navbar = () => {
                 </Link>
               </>
             ) : (
-              <div className="hidden md:flex items-center gap-2 text-sm font-medium text-foreground/80">
+              <div className="hidden md:flex items-center gap-3 text-sm font-medium text-foreground/80">
                 <User className="h-4 w-4" />
                 <span>Hello, {user.name || user.email}</span>
+                <button onClick={handleLogout} className="underline hover:text-foreground">Logout</button>
               </div>
             )}
             {user?.role === 'admin' && (
@@ -140,11 +147,13 @@ const Navbar = () => {
               className="relative hover:bg-foreground/5 transition-all duration-300"
               asChild
             >
-              <Link href="#" title="Wishlist">
+              <Link href="/wishlist" title="Wishlist">
                 <Heart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium animate-scale-in">
-                  {wishlistCount}
-                </span>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center font-medium animate-scale-in">
+                    {wishlistCount}
+                  </span>
+                )}
               </Link>
             </Button>
 
@@ -155,9 +164,11 @@ const Navbar = () => {
                 className="relative hover:bg-foreground/5 transition-all duration-300"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium animate-scale-in">
-                  {cartCount}
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center font-medium animate-scale-in">
+                    {cartCount}
+                  </span>
+                )}
               </Button>
             </Link>
 
@@ -187,7 +198,10 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-background border-b border-border shadow-lg animate-slide-in">
           <div className="flex flex-col p-6 gap-4">
-            {navLinks.map((link) => (
+            {navLinks.filter((link) => {
+              const base = link.path.split("?")[0];
+              return !pathname.startsWith(base);
+            }).map((link) => (
               <Link
                 key={`${link.path}-${link.name}`}
                 href={link.path}
@@ -209,8 +223,9 @@ const Navbar = () => {
                   </Link>
                 </>
               ) : (
-                <div className="text-lg font-medium text-foreground/80">
-                  Hello, {user.name || user.email}
+                <div className="flex items-center justify-between text-lg font-medium text-foreground/80">
+                  <span>Hello, {user.name || user.email}</span>
+                  <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="ml-4 underline hover:text-foreground">Logout</button>
                 </div>
               )}
               {user?.role === 'admin' && (

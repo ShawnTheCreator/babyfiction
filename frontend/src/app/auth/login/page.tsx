@@ -21,6 +21,51 @@ export default function LoginPage() {
       });
       const token = loginRes?.token;
       if (token) setAuthToken(token);
+      // After successful login, migrate guest cart & wishlist to backend or clear server if none
+      try {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
+        const guestCart = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(guestCart) && guestCart.length > 0) {
+          for (const it of guestCart) {
+            if (!it?.id) continue;
+            try {
+              await fetchJson('/api/cart/items', {
+                method: 'POST',
+                body: JSON.stringify({ product: it.id, quantity: 1 }),
+              });
+            } catch {}
+          }
+          try {
+            localStorage.setItem('bf_cart', JSON.stringify([]));
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
+          } catch {}
+        } else {
+          // No guest cart: ensure server cart is empty on login per requirement
+          try { await fetchJson('/api/cart', { method: 'DELETE' }); } catch {}
+        }
+
+        // Wishlist migration
+        const rawW = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
+        const guestWish = rawW ? JSON.parse(rawW) : [];
+        if (Array.isArray(guestWish) && guestWish.length > 0) {
+          for (const it of guestWish) {
+            if (!it?.id) continue;
+            try {
+              await fetchJson('/api/wishlist/items', {
+                method: 'POST',
+                body: JSON.stringify({ product: it.id }),
+              });
+            } catch {}
+          }
+          try {
+            localStorage.setItem('bf_wishlist', JSON.stringify([]));
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
+          } catch {}
+        } else {
+          // No guest wishlist: ensure server wishlist is empty
+          try { await fetchJson('/api/wishlist', { method: 'DELETE' }); } catch {}
+        }
+      } catch {}
       // After successful login, determine role and redirect accordingly
       try {
         const me: any = await fetchJson('/api/auth/me');

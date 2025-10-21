@@ -17,38 +17,22 @@ const Cart = () => {
     setLoading(true);
     try {
       const token = getAuthToken();
-      if (token) {
-        const res: any = await fetchJson('/api/cart');
-        const items = Array.isArray(res?.cart?.items) ? res.cart.items : [];
-        const mapped = items.map((it: any) => ({
-          _id: it._id,
-          productId: it.product?._id || it.product,
-          name: it.product?.name || 'Product',
-          price: it.product?.price || 0,
-          quantity: it.quantity,
-          size: it.size,
-          image: it.product?.thumbnail || (Array.isArray(it.product?.images) ? it.product.images[0] : ''),
-        }));
-        setCartItems(mapped);
-      } else {
-        // Fallback to localStorage demo cart
-        try {
-          const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
-          const list = raw ? JSON.parse(raw) : [];
-          const mapped = (Array.isArray(list) ? list : []).map((p) => ({
-            _id: String(p.id),
-            productId: p.id,
-            name: p.name,
-            price: Number(String(p.price).replace(/[^0-9]/g, '')) || 0,
-            quantity: 1,
-            size: 'M',
-            image: p.image,
-          }));
-          setCartItems(mapped);
-        } catch {
-          setCartItems([]);
-        }
+      if (!token) {
+        setCartItems([]);
+        return;
       }
+      const res: any = await fetchJson('/api/cart');
+      const items = Array.isArray(res?.cart?.items) ? res.cart.items : [];
+      const mapped = items.map((it: any) => ({
+        _id: it._id,
+        productId: it.product?._id || it.product,
+        name: it.product?.name || 'Product',
+        price: it.product?.price || 0,
+        quantity: it.quantity,
+        size: it.size,
+        image: it.product?.thumbnail || (Array.isArray(it.product?.images) ? it.product.images[0] : ''),
+      }));
+      setCartItems(mapped);
     } catch (e: any) {
       setError(e?.message || 'Failed to load cart');
     } finally {
@@ -60,10 +44,7 @@ const Cart = () => {
 
   const updateQuantity = async (id: string, delta: number) => {
     const token = getAuthToken();
-    if (!token) {
-      setCartItems(cartItems.map((item) => item._id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item));
-      return;
-    }
+    if (!token) return;
     const item = cartItems.find((x) => x._id === id);
     if (!item) return;
     const nextQty = Math.max(1, Math.min(10, item.quantity + delta));
@@ -73,21 +54,14 @@ const Cart = () => {
 
   const removeItem = async (id: string) => {
     const token = getAuthToken();
-    if (!token) {
-      setCartItems(cartItems.filter((item) => item._id !== id));
-      return;
-    }
+    if (!token) return;
     await fetchJson(`/api/cart/items/${id}`, { method: 'DELETE' });
     await loadCart();
   };
 
   const clearCart = async () => {
     const token = getAuthToken();
-    if (!token) {
-      setCartItems([]);
-      try { localStorage.setItem('bf_cart', JSON.stringify([])); if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated')); } catch {}
-      return;
-    }
+    if (!token) return;
     await fetchJson('/api/cart', { method: 'DELETE' });
     await loadCart();
     if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
@@ -101,6 +75,20 @@ const Cart = () => {
     return (
       <div className="min-h-screen pt-32 pb-20 flex items-center justify-center">
         <div className="text-center animate-fade-in text-muted-foreground">Loading cart…</div>
+      </div>
+    );
+  }
+
+  const token = getAuthToken();
+  if (!token) {
+    return (
+      <div className="min-h-screen pt-32 pb-20 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <h2 className="text-3xl font-bold mb-4">Please login to view your cart</h2>
+          <Link href="/auth/login">
+            <Button size="lg">Login</Button>
+          </Link>
+        </div>
       </div>
     );
   }

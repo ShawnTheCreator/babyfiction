@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Minus, Plus, Heart, Share2, Star, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { fetchJson, getAuthToken } from "@/lib/api";
 
 const ProductDetail = () => {
   const params = useParams();
@@ -15,48 +16,70 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("M");
   const [selectedImage, setSelectedImage] = useState(0);
 
-  const product = {
-    id: id || "1",
-    name: "Premium Designer Sneakers",
-    price: "R4,799",
-    rating: 4.8,
-    reviews: 127,
-    description:
-      "Crafted with premium materials and attention to detail, these sneakers combine comfort with contemporary style. Perfect for both casual wear and active lifestyles.",
-    features: [
-      "Premium leather and suede construction",
-      "Cushioned insole for all-day comfort",
-      "Durable rubber outsole",
-      "Breathable mesh lining",
-    ],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    images: [
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80",
-      "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&q=80",
-      "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=800&q=80",
-    ],
+  type Product = {
+    id: string;
+    name: string;
+    price: number;
+    description?: string;
+    rating?: number;
+    reviews?: number;
+    images: string[];
+    thumbnail?: string;
+    category?: string;
+    features?: string[];
+    sizes?: string[];
   };
 
-  const relatedProducts = [
-    {
-      id: 2,
-      name: "Designer Jacket",
-      price: "R9,599",
-      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80",
-    },
-    {
-      id: 3,
-      name: "Classic Watch",
-      price: "R7,199",
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
-    },
-    {
-      id: 4,
-      name: "Luxury Bag",
-      price: "R12,799",
-      image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=80",
-    },
-  ];
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Array<{ id: string; name: string; price: string; image: string }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!id) return;
+      try {
+        // Load product by id
+        const res: any = await fetchJson(`/api/products/${id}`);
+        const p = res?.product || res?.data || res;
+        if (p && active) {
+          const mapped: Product = {
+            id: p._id,
+            name: p.name,
+            price: p.price,
+            description: p.description,
+            rating: p?.rating?.average ?? 0,
+            reviews: p?.rating?.count ?? 0,
+            images: Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.thumbnail ? [p.thumbnail] : []),
+            thumbnail: p.thumbnail,
+            category: p.category,
+            features: Array.isArray(p.features) ? p.features : [],
+            sizes: Array.isArray(p?.variants?.size) ? p.variants.size : ["XS","S","M","L","XL"],
+          };
+          setProduct(mapped);
+
+          // Load related by same category
+          if (p.category) {
+            const rel: any = await fetchJson(`/api/products?category=${encodeURIComponent(p.category)}&limit=6`);
+            const list = Array.isArray(rel?.products) ? rel.products : [];
+            const mappedRel = list
+              .filter((x: any) => x?._id !== p._id)
+              .map((x: any) => ({
+                id: x._id,
+                name: x.name,
+                price: typeof x.price === 'number' ? `R${x.price.toFixed(2)}` : String(x.price ?? ''),
+                image: x.thumbnail || (Array.isArray(x.images) ? x.images[0] : ''),
+              }));
+            if (active) setRelatedProducts(mappedRel);
+          }
+        }
+      } catch {
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [id]);
 
   const handleAddToCart = () => {
     toast({
@@ -64,6 +87,54 @@ const ProductDetail = () => {
       description: `${quantity}x ${product.name} - Size ${selectedSize}`,
     });
   };
+
+  const toggleWishlist = async () => {
+    if (!product) return;
+    const token = getAuthToken();
+    if (token) {
+      try {
+        // Try remove first
+        await fetchJson(`/api/wishlist/items/${product.id}`, { method: 'DELETE' });
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
+        return;
+      } catch {}
+      try {
+        await fetchJson('/api/wishlist/items', { method: 'POST', body: JSON.stringify({ product: product.id }) });
+      } catch {}
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
+    } else {
+      try {
+        const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
+        const list = raw ? JSON.parse(raw) : [];
+        const exists = Array.isArray(list) && list.find((x: any) => String(x?.id) === String(product.id));
+        const item = {
+          id: product.id,
+          name: product.name,
+          price: `R${product.price?.toFixed?.(2) ?? product.price}`,
+          image: product.thumbnail || product.images?.[0] || ''
+        };
+        const next = exists ? list.filter((x: any) => String(x?.id) !== String(product.id)) : [...(Array.isArray(list) ? list : []), item];
+        localStorage.setItem('bf_wishlist', JSON.stringify(next));
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
+      } catch {}
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-32 pb-20">
+        <div className="max-w-[1400px] mx-auto px-6">Loading…</div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen pt-32 pb-20">
+        <div className="max-w-[1400px] mx-auto px-6">Product not found.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-32 pb-20">
@@ -116,7 +187,7 @@ const ProductDetail = () => {
                     <Star
                       key={i}
                       className={`h-5 w-5 ${
-                        i < Math.floor(product.rating)
+                        i < Math.floor(product.rating || 0)
                           ? "fill-accent text-accent"
                           : "text-muted-foreground"
                       }`}
@@ -124,19 +195,21 @@ const ProductDetail = () => {
                   ))}
                 </div>
                 <span className="text-muted-foreground">
-                  {product.rating} ({product.reviews} reviews)
+                  {(product.rating ?? 0).toFixed(1)} ({product.reviews ?? 0} reviews)
                 </span>
               </div>
-              <p className="text-4xl font-bold mb-6">{product.price}</p>
+              <p className="text-4xl font-bold mb-6">{`R${product.price?.toFixed?.(2) ?? product.price}`}</p>
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            {product.description && (
+              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            )}
 
             {/* Size Selector */}
             <div>
               <label className="block text-sm font-semibold mb-3">Select Size</label>
               <div className="flex gap-2">
-                {product.sizes.map((size) => (
+                {(product.sizes || ["XS","S","M","L","XL"]).map((size) => (
                   <Button
                     key={size}
                     variant={selectedSize === size ? "default" : "outline"}
@@ -182,7 +255,7 @@ const ProductDetail = () => {
               >
                 Add to Cart
               </Button>
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" onClick={toggleWishlist} title="Toggle wishlist">
                 <Heart className="h-5 w-5" />
               </Button>
               <Button variant="outline" size="lg">

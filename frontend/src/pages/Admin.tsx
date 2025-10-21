@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Package, ShoppingCart, Users, TrendingUp, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -95,10 +96,12 @@ const Admin = () => {
             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter mb-2">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back! Here's your store overview.</p>
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Button>
+          <Link href="/admin/products/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Product
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Grid */}
