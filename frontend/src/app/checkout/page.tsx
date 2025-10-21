@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CreditCard, Star } from 'lucide-react';
 import { track } from '@/lib/analytics';
 import RequireAuth from '@/components/RequireAuth';
+import { fetchJson } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,8 +15,8 @@ function CheckoutInner() {
   const params = useSearchParams();
   const name = params.get('name') || params.get('product') || 'Selected Product';
   const price = params.get('price') || '—';
-  const image = params.get('image') || '';
   const id = params.get('id') || 'unknown';
+  const initialImage = params.get('image') || '';
   const { user, loading } = useCurrentUser();
   const { toast } = useToast();
 
@@ -24,6 +25,7 @@ function CheckoutInner() {
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [resolvedImage, setResolvedImage] = useState<string>(initialImage);
 
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState('');
@@ -38,6 +40,21 @@ function CheckoutInner() {
       setReviews([]);
     }
   }, [id]);
+
+  // Resolve image from product if not provided
+  useEffect(() => {
+    (async () => {
+      if (resolvedImage || !id || id === 'unknown') return;
+      try {
+        const res: any = await fetchJson(`/api/products/${id}`);
+        const p = res?.product || res?.data || res;
+        const thumb = p?.thumbnail || (Array.isArray(p?.images) ? p.images[0] : '');
+        if (thumb) setResolvedImage(thumb);
+      } catch {
+        // ignore
+      }
+    })();
+  }, [id, resolvedImage]);
 
   // Track checkout start when landing on this page
   useEffect(() => {
@@ -93,9 +110,9 @@ function CheckoutInner() {
         <div className="rounded-lg border bg-white p-6">
           <h2 className="text-xl font-semibold">Order Summary</h2>
           <div className="mt-4 flex items-start gap-4">
-            {image ? (
+            {resolvedImage ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={image} alt={name} className="h-24 w-24 rounded object-cover" />
+              <img src={resolvedImage} alt={name} className="h-24 w-24 rounded object-cover" />
             ) : (
               <div className="h-24 w-24 rounded bg-gray-100" />
             )}

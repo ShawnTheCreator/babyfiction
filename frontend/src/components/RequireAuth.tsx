@@ -8,6 +8,12 @@ export default function RequireAuth({ children, redirectTo }: { children: React.
   const { user, loading } = useCurrentUser();
   const router = useRouter();
 
+  useEffect(() => {
+    if (!loading && !user && redirectTo) {
+      router.replace(redirectTo);
+    }
+  }, [loading, user, redirectTo, router]);
+
   if (loading) {
     return (
       <div className="mx-auto max-w-xl p-6 text-center text-sm text-muted-foreground">
@@ -17,14 +23,7 @@ export default function RequireAuth({ children, redirectTo }: { children: React.
   }
 
   if (!user) {
-    if (redirectTo) {
-      // Redirect unauthenticated users if a redirect target is provided
-      // Use an effect to avoid rendering on server
-      useEffect(() => {
-        router.replace(redirectTo);
-      }, [redirectTo]);
-      return null;
-    }
+    if (redirectTo) return null;
     return (
       <div className="mx-auto max-w-xl p-6 text-center">
         <h2 className="text-xl font-semibold">Sign in required</h2>
