@@ -39,17 +39,19 @@ export const register = async (req, res, next) => {
     user.emailVerificationToken = verificationToken;
     await user.save();
 
-    // Send verification email
+    // Send verification email (non-blocking)
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    await sendEmail({
-      email: user.email,
-      subject: 'Verify your email address',
-      template: 'emailVerification',
-      data: {
-        name: user.firstName,
-        verificationUrl
-      }
-    });
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Verify your email address',
+        text: `Hi ${user.firstName}, please verify your email: ${verificationUrl}`,
+        html: `<p>Hi ${user.firstName},</p><p>Please verify your email by clicking the link below:</p><p><a href="${verificationUrl}">${verificationUrl}</a></p>`
+      });
+    } catch (e) {
+      // Do not block signup if email sending fails
+      console.error('Email send failed:', e?.message || e);
+    }
 
     // Generate token
     const token = generateToken(user._id);
