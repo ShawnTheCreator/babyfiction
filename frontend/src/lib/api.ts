@@ -12,6 +12,7 @@ export function setAuthToken(token: string | null) {
     if (typeof window === 'undefined') return;
     if (token) localStorage.setItem('bf_token', token);
     else localStorage.removeItem('bf_token');
+    try { window.dispatchEvent(new Event('bf_auth_changed')); } catch {}
   } catch {}
 }
 

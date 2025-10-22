@@ -1,7 +1,7 @@
 "use client";
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { fetchJson, setAuthToken } from '@/lib/api';
+import { fetchJson } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,13 +26,11 @@ function SignupInner() {
     }
     setLoading(true);
     try {
-      const res: any = await fetchJson('/api/auth/register', {
+      await fetchJson('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify({ firstName, lastName, email, password }),
       });
-      const token = res?.token;
-      if (token) setAuthToken(token);
-      router.push('/');
+      router.push('/auth/login');
     } catch (err: any) {
       setError(err?.message || 'Signup failed');
     } finally {

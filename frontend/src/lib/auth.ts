@@ -16,7 +16,7 @@ export function useCurrentUser() {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+    const load = async () => {
       try {
         const res: any = await fetchJson('/api/auth/me');
         const maybeUser = res?.data || res?.user || res;
@@ -35,8 +35,25 @@ export function useCurrentUser() {
       } finally {
         if (active) setLoading(false);
       }
-    })();
-    return () => { active = false; };
+    };
+
+    load();
+
+    const onAuthChanged = () => {
+      if (!active) return;
+      setLoading(true);
+      load();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('bf_auth_changed', onAuthChanged);
+    }
+    
+    return () => { 
+      active = false; 
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('bf_auth_changed', onAuthChanged);
+      }
+    };
   }, []);
 
   return { user, loading };
