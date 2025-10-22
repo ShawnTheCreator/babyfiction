@@ -3,13 +3,14 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchJson, setAuthToken } from '@/lib/api';
 
- export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic';
 
- function SignupInner() {
+function SignupInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isAdmin = (searchParams.get('role') || '').toLowerCase() === 'admin';
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -27,7 +28,7 @@ import { fetchJson, setAuthToken } from '@/lib/api';
     try {
       const res: any = await fetchJson('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ firstName: name, lastName: '', email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password }),
       });
       const token = res?.token;
       if (token) setAuthToken(token);
@@ -56,13 +57,25 @@ import { fetchJson, setAuthToken } from '@/lib/api';
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-zinc-300">Name</label>
+              <label className="block text-sm font-medium text-zinc-300">First name</label>
               <input
                 type="text"
                 className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                placeholder="Your first name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-zinc-300">Surname</label>
+              <input
+                type="text"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+                placeholder="Your surname"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 required
               />
             </div>
