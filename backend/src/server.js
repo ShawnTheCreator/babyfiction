@@ -19,8 +19,10 @@ import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import cartRoutes from './routes/cart.js';
 import wishlistRoutes from './routes/wishlist.js';
+import usersRoutes from './routes/users.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Connect to database
 connectDB();
@@ -99,6 +101,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/users', usersRoutes);
 
 // Error handling middleware
 app.use(notFound);

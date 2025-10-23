@@ -25,6 +25,8 @@ const Admin = () => {
   const [productsTotal, setProductsTotal] = useState<number>(0);
   const [topReviewed, setTopReviewed] = useState<any[]>([]);
   const [productDetails, setProductDetails] = useState<Record<string, any>>({});
+  const [users, setUsers] = useState<any[]>([]);
+  const [usersTotal, setUsersTotal] = useState<number>(0);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -38,21 +40,26 @@ const Admin = () => {
         return;
       }
       try {
-        const [statsRes, ordersRes, productsRes, analyticsRes]: any = await Promise.all([
+        const [statsRes, ordersRes, productsRes, analyticsRes, usersRes]: any = await Promise.all([
           fetchJson('/api/orders/admin/stats'),
           fetchJson('/api/orders/admin/all?limit=5'),
           fetchJson('/api/products?limit=1'),
           fetchJson('/api/analytics/summary?days=90'),
+          fetchJson('/api/users?limit=50&page=1'),
         ]);
         const statsData = statsRes?.data || statsRes;
         const ordersData = ordersRes?.data || ordersRes?.orders || ordersRes?.data || [];
         const productsTotalCount = typeof productsRes?.total === 'number' ? productsRes.total : (productsRes?.data?.total ?? 0);
         const top = Array.isArray(analyticsRes?.topReviewed) ? analyticsRes.topReviewed.slice(0, 3) : [];
+        const usersData = Array.isArray(usersRes?.data?.users) ? usersRes.data.users : (Array.isArray(usersRes?.users) ? usersRes.users : []);
+        const usersTotalCount = typeof usersRes?.data?.total === 'number' ? usersRes.data.total : (typeof usersRes?.total === 'number' ? usersRes.total : usersData.length);
         if (!active) return;
         setOrderStats(statsData);
         setOrders(ordersData);
         setProductsTotal(productsTotalCount);
         setTopReviewed(top);
+        setUsers(usersData);
+        setUsersTotal(usersTotalCount);
         const ids = top.map((t: any) => t._id).filter(Boolean);
         if (ids.length > 0) {
           const fetched: Record<string, any> = {};
@@ -286,12 +293,44 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="customers" className="space-y-6">
-            <Card className="p-12 text-center animate-fade-up">
-              <Users className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-bold mb-2">Customer Management</h3>
-              <p className="text-muted-foreground">
-                Customer management features coming soon
-              </p>
+            <Card className="animate-fade-up">
+              <div className="p-6 border-b flex items-center justify-between">
+                <h2 className="text-2xl font-bold">Customers</h2>
+                <div className="text-sm text-muted-foreground">Total: {usersTotal}</div>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Last Login</TableHead>
+                    <TableHead>Joined</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(users || []).map((u: any) => {
+                    const name = [u.firstName, u.lastName].filter(Boolean).join(' ') || '—';
+                    const lastLogin = u?.lastLogin ? new Date(u.lastLogin).toLocaleString() : '—';
+                    const joined = u?.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—';
+                    const statusLabel = u?.isActive ? 'Active' : 'Inactive';
+                    const statusColor = u?.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500';
+                    return (
+                      <TableRow key={u?._id || u?.id}>
+                        <TableCell className="font-medium">{name}</TableCell>
+                        <TableCell>{u?.email || '—'}</TableCell>
+                        <TableCell className="capitalize">{u?.role || 'customer'}</TableCell>
+                        <TableCell>
+                          <Badge className={statusColor}>{statusLabel}</Badge>
+                        </TableCell>
+                        <TableCell>{lastLogin}</TableCell>
+                        <TableCell>{joined}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </Card>
           </TabsContent>
 

@@ -10,6 +10,8 @@ export const generalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req, _res) => `${req.ip}:${req.path}`,
+  skip: (req, _res) => req.method === 'OPTIONS' || req.path === '/api/health',
 });
 
 // Auth rate limiter (stricter)
@@ -22,6 +24,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skipSuccessfulRequests: true,
 });
 
 // Password reset rate limiter
