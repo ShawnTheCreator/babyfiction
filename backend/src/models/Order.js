@@ -156,7 +156,20 @@ const orderSchema = new mongoose.Schema({
   estimatedDelivery: Date,
   deliveredAt: Date,
   notes: String,
-  adminNotes: String
+  adminNotes: String,
+  assignedDriver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  driverNotes: String,
+  assignedAt: Date,
+  promotion: {
+    code: String,
+    type: String,
+    discount: Number,
+    freeShipping: Boolean
+  }
 }, {
   timestamps: true
 });

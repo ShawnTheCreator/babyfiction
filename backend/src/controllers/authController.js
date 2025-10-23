@@ -5,6 +5,8 @@ import { body } from 'express-validator';
 import User from '../models/User.js';
 import { createError } from '../utils/errorUtils.js';
 import { sendEmail } from '../utils/email.js';
+import { sendPasswordResetEmail } from '../services/emailService.js';
+import { isRateLimited, trackFailedAttempt, clearFailedAttempts } from '../middleware/recaptcha.js';
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -81,9 +83,15 @@ export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    // Check rate limiting
+    if (isRateLimited(email, 5)) {
+      return next(createError('Too many failed login attempts. Please try again in 15 minutes.', 429));
+    }
+
     // Check if user exists and include password
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
+      trackFailedAttempt(email);
       return next(createError('Invalid credentials', 401));
     }
 
@@ -95,8 +103,12 @@ export const login = async (req, res, next) => {
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      trackFailedAttempt(email);
       return next(createError('Invalid credentials', 401));
     }
+
+    // Clear failed attempts on successful login
+    clearFailedAttempts(email);
 
     // Update last login
     user.lastLogin = new Date();
@@ -215,20 +227,20 @@ export const forgotPassword = async (req, res, next) => {
     // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = resetToken;
-    user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save();
 
-    // Send reset email
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    await sendEmail({
-      email: user.email,
-      subject: 'Password reset request',
-      template: 'passwordReset',
-      data: {
-        name: user.firstName,
-        resetUrl
-      }
-    });
+    // Send reset email using new email service
+    try {
+      await sendPasswordResetEmail(
+        user.email,
+        resetToken,
+        user.firstName
+      );
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError);
+      // Continue anyway - token is saved
+    }
 
     res.json({
       success: true,

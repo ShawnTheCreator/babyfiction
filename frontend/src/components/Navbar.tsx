@@ -141,6 +141,11 @@ const Navbar = () => {
                 Admin
               </Link>
             )}
+            {user?.role === 'driver' && (
+              <Link href="/driver" className="hidden md:inline text-sm font-medium text-foreground/80 hover:text-foreground transition-colors">
+                Driver Portal
+              </Link>
+            )}
 
             {/* Wishlist */}
             <Button
@@ -242,6 +247,11 @@ const Navbar = () => {
               {user?.role === 'admin' && (
                 <Link href="/admin" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-foreground/80 hover:text-foreground">
                   Admin
+                </Link>
+              )}
+              {user?.role === 'driver' && (
+                <Link href="/driver" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-foreground/80 hover:text-foreground">
+                  Driver Portal
                 </Link>
               )}
             </div>

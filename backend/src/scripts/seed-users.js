@@ -41,6 +41,15 @@ async function run() {
     role: 'customer',
   }));
 
+  results.push(await upsertUser({
+    firstName: 'John',
+    lastName: 'Driver',
+    email: 'driver@example.com',
+    password: 'ChangeMe123!',
+    role: 'driver',
+    phone: '+27812345678',
+  }));
+
   for (const r of results) {
     const { user, created } = r;
     console.log(`${created ? 'Created' : 'Ensured'} user: ${user.email} (role=${user.role})`);

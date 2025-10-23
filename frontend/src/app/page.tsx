@@ -1,15 +1,18 @@
 "use client";
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Sparkles, ArrowRight, ShoppingCart } from 'lucide-react';
+import { Sparkles, ArrowRight, ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchJson, getAuthToken } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 type UiProduct = { id: string; name: string; price: string; image: string; category?: string; description?: string };
 
 export default function HomePage() {
   const [products, setProducts] = useState<UiProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
+  const router = useRouter();
 
   const addToCart = async (item: { id: string; name: string; price: string; image: string }) => {
     const token = getAuthToken();
@@ -41,6 +44,17 @@ export default function HomePage() {
           description: p.description,
         }));
         if (active) setProducts(mapped);
+
+        // Load wishlist if authenticated
+        const token = getAuthToken();
+        if (token) {
+          try {
+            const wishRes: any = await fetchJson('/api/wishlist');
+            const items = wishRes?.wishlist?.items || [];
+            const ids = new Set<string>(items.map((it: any) => it?.product?._id || it?.product).filter((id: any): id is string => typeof id === 'string'));
+            if (active) setWishlistIds(ids);
+          } catch {}
+        }
       } catch {
       } finally {
         if (active) setLoading(false);
@@ -48,6 +62,25 @@ export default function HomePage() {
     })();
     return () => { active = false; };
   }, []);
+
+  const toggleWishlist = async (productId: string) => {
+    const token = getAuthToken();
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+    const isInWishlist = wishlistIds.has(productId);
+    try {
+      if (isInWishlist) {
+        await fetchJson(`/api/wishlist/items/${productId}`, { method: 'DELETE' });
+        setWishlistIds(prev => { const next = new Set(prev); next.delete(productId); return next; });
+      } else {
+        await fetchJson('/api/wishlist/items', { method: 'POST', body: JSON.stringify({ product: productId }) });
+        setWishlistIds(prev => new Set(prev).add(productId));
+      }
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
+    } catch {}
+  };
 
   return (
     <main className="animate-fade-in">
@@ -110,8 +143,17 @@ export default function HomePage() {
             {products.map((p) => (
               <article
                 key={p.id}
-                className="group rounded border bg-white p-4 transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-up"
+                className="group rounded border bg-white p-4 transition-transform duration-300 hover:scale-[1.02] hover:shadow-lg animate-fade-up relative"
               >
+                <button
+                  onClick={() => toggleWishlist(p.id)}
+                  className="absolute top-6 right-6 z-10 rounded-full bg-white/90 p-2 shadow-md hover:bg-white transition-colors"
+                  title={wishlistIds.has(p.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                >
+                  <Heart
+                    className={`h-5 w-5 ${wishlistIds.has(p.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
+                  />
+                </button>
                 <Link href={`/product/${encodeURIComponent(p.id)}`} className="block">
                   <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded bg-gray-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

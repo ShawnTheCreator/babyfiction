@@ -2,7 +2,10 @@ import { body } from 'express-validator';
 import Order from '../models/Order.js';
 import Cart from '../models/Cart.js';
 import Product from '../models/Product.js';
+import User from '../models/User.js';
 import { createError } from '../utils/errorUtils.js';
+import { sendOrderConfirmationEmail } from '../services/emailService.js';
+import { sendOrderConfirmationSMS, sendOrderStatusSMS, sendOrderShippedSMS, sendDeliveryConfirmationSMS } from '../services/smsService.js';
 import fetch from 'node-fetch';
 
 // @desc    Create new order
@@ -46,7 +49,7 @@ export const createOrder = async (req, res, next) => {
     }
     
     // Calculate tax and shipping
-    const taxRate = 0.07; // 7% tax (adjust later if needed)
+    const taxRate = 0.15; // 15% VAT (South Africa standard rate)
     const tax = subtotal * taxRate;
 
     // Shipping rule: Free shipping for orders over R3000, else R130
@@ -79,6 +82,30 @@ export const createOrder = async (req, res, next) => {
     // Clear user's cart if order was created from cart
     if (req.body.clearCart) {
       await Cart.findOneAndDelete({ user: req.user._id });
+    }
+    
+    // Send order confirmation email (non-blocking)
+    try {
+      const populatedOrder = await Order.findById(order._id).populate('items.product', 'name price');
+      await sendOrderConfirmationEmail(
+        req.user.email,
+        populatedOrder,
+        req.user.firstName || req.user.email
+      );
+    } catch (emailError) {
+      console.error('Failed to send order confirmation email:', emailError);
+      // Don't fail the order if email fails
+    }
+
+    // Send order confirmation SMS (non-blocking)
+    if (req.user.phone || shippingAddress?.phone) {
+      try {
+        const phone = req.user.phone || shippingAddress?.phone;
+        await sendOrderConfirmationSMS(phone, order._id, total);
+      } catch (smsError) {
+        console.error('Failed to send order confirmation SMS:', smsError);
+        // Don't fail the order if SMS fails
+      }
     }
     
     res.status(201).json({
@@ -182,6 +209,25 @@ export const updateOrderStatus = async (req, res, next) => {
     }
     
     await order.save();
+    
+    // Send SMS notification for status change (non-blocking)
+    try {
+      const populatedOrder = await Order.findById(order._id).populate('user', 'phone');
+      const phone = populatedOrder?.user?.phone || order.shippingAddress?.phone;
+      
+      if (phone) {
+        if (status === 'shipped') {
+          await sendOrderShippedSMS(phone, order._id, order.trackingNumber);
+        } else if (status === 'delivered') {
+          await sendDeliveryConfirmationSMS(phone, order._id);
+        } else {
+          await sendOrderStatusSMS(phone, order._id, status);
+        }
+      }
+    } catch (smsError) {
+      console.error('Failed to send status update SMS:', smsError);
+      // Don't fail the status update if SMS fails
+    }
     
     res.json({
       success: true,

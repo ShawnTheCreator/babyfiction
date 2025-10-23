@@ -1,7 +1,8 @@
 "use client";
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Heart } from 'lucide-react';
 import { fetchJson, getAuthToken } from '@/lib/api';
 import { useCurrentUser } from '@/lib/auth';
 
@@ -17,17 +18,32 @@ export default function CatalogPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
   const { user } = useCurrentUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category') || '';
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const params = new URLSearchParams({ limit: '24', fields: 'name,price,thumbnail' });
+        const params = new URLSearchParams({ limit: '24', fields: 'name,price,thumbnail,category' });
+        if (category) params.set('category', category);
         const res: any = await fetchJson(`/api/products?${params.toString()}`);
         const list: Product[] = res?.data || res?.products || res || [];
         if (active) setProducts(Array.isArray(list) ? list : []);
+
+        // Load wishlist if authenticated
+        const token = getAuthToken();
+        if (token) {
+          try {
+            const wishRes: any = await fetchJson('/api/wishlist');
+            const items = wishRes?.wishlist?.items || [];
+            const ids = new Set<string>(items.map((it: any) => it?.product?._id || it?.product).filter((id: any): id is string => typeof id === 'string'));
+            if (active) setWishlistIds(ids);
+          } catch {}
+        }
       } catch (e: any) {
         if (active) setError('Failed to load products');
       } finally {
@@ -35,12 +51,31 @@ export default function CatalogPage() {
       }
     })();
     return () => { active = false; };
-  }, []);
+  }, [category]);
+
+  const toggleWishlist = async (productId: string) => {
+    const token = getAuthToken();
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+    const isInWishlist = wishlistIds.has(productId);
+    try {
+      if (isInWishlist) {
+        await fetchJson(`/api/wishlist/items/${productId}`, { method: 'DELETE' });
+        setWishlistIds(prev => { const next = new Set(prev); next.delete(productId); return next; });
+      } else {
+        await fetchJson('/api/wishlist/items', { method: 'POST', body: JSON.stringify({ product: productId }) });
+        setWishlistIds(prev => new Set(prev).add(productId));
+      }
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
+    } catch {}
+  };
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Babyfiction Catalog</h1>
+        <h1 className="text-2xl font-bold">{category ? `${category.charAt(0).toUpperCase() + category.slice(1)}` : 'All Products'}</h1>
         <div className="flex gap-3">
           <Link className="rounded border px-3 py-2" href="/">Back to Home</Link>
           {!user ? (
@@ -60,7 +95,16 @@ export default function CatalogPage() {
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {products.map((p) => (
-          <article key={p._id} className="rounded border bg-white p-4">
+          <article key={p._id} className="rounded border bg-white p-4 relative">
+            <button
+              onClick={() => toggleWishlist(p._id)}
+              className="absolute top-6 right-6 z-10 rounded-full bg-white/90 p-2 shadow-md hover:bg-white transition-colors"
+              title={wishlistIds.has(p._id) ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart
+                className={`h-5 w-5 ${wishlistIds.has(p._id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
+              />
+            </button>
             <div className="mb-3 aspect-[4/3] w-full overflow-hidden rounded bg-gray-100">
               {p.thumbnail ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -73,7 +117,7 @@ export default function CatalogPage() {
             </div>
             <h3 className="text-lg font-medium">{p.name}</h3>
             {typeof p.price === 'number' && (
-              <p className="mt-1 text-sm text-muted-foreground">${p.price?.toFixed(2)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">R{p.price?.toFixed(2)}</p>
             )}
             {p.description && (
               <p className="mt-2 text-sm">{p.description}</p>

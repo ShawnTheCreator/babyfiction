@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Package, ShoppingCart, Users, TrendingUp, Plus } from "lucide-react";
+import { Package, ShoppingCart, Users, TrendingUp, Plus, Ban, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
@@ -180,12 +180,20 @@ const Admin = () => {
             <h1 className="text-4xl md:text-5xl font-bold tracking-tighter mb-2">Dashboard</h1>
             <p className="text-muted-foreground">Welcome back! Here's your store overview.</p>
           </div>
-          <Link href="/admin/products/new">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/admin/products">
+              <Button variant="outline" className="gap-2">
+                <Package className="h-4 w-4" />
+                Manage Products
+              </Button>
+            </Link>
+            <Link href="/admin/products/new">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Product
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
@@ -307,6 +315,7 @@ const Admin = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>Last Login</TableHead>
                     <TableHead>Joined</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -316,6 +325,7 @@ const Admin = () => {
                     const joined = u?.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—';
                     const statusLabel = u?.isActive ? 'Active' : 'Inactive';
                     const statusColor = u?.isActive ? 'bg-green-500/10 text-green-500' : 'bg-gray-500/10 text-gray-500';
+                    const isCurrentUser = u?._id === user?._id || u?.id === user?.id;
                     return (
                       <TableRow key={u?._id || u?.id}>
                         <TableCell className="font-medium">{name}</TableCell>
@@ -326,6 +336,35 @@ const Admin = () => {
                         </TableCell>
                         <TableCell>{lastLogin}</TableCell>
                         <TableCell>{joined}</TableCell>
+                        <TableCell className="text-right">
+                          {!isCurrentUser && u?.role !== 'admin' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  await fetchJson(`/api/users/${u._id || u.id}`, {
+                                    method: 'PUT',
+                                    body: JSON.stringify({ isActive: !u.isActive }),
+                                  });
+                                  // Reload users
+                                  const res: any = await fetchJson('/api/users?limit=50&page=1');
+                                  const usersData = Array.isArray(res?.data?.users) ? res.data.users : (Array.isArray(res?.users) ? res.users : []);
+                                  setUsers(usersData);
+                                } catch (err) {
+                                  console.error('Failed to update user status', err);
+                                }
+                              }}
+                              className={u?.isActive ? 'text-red-500 hover:text-red-600' : 'text-green-500 hover:text-green-600'}
+                            >
+                              {u?.isActive ? (
+                                <><Ban className="h-4 w-4 mr-1" /> Deactivate</>
+                              ) : (
+                                <><CheckCircle className="h-4 w-4 mr-1" /> Activate</>
+                              )}
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })}

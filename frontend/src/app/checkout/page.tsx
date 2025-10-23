@@ -88,7 +88,7 @@ function CheckoutInner() {
 
   // Totals: prefer cart, fallback to single item from URL params
   const { subtotal, shipping, tax, total } = useMemo(() => {
-    const TAX_RATE = 0.07; // 7%
+    const TAX_RATE = 0.15; // 15% VAT (South Africa)
     let sub = 0;
     if (Array.isArray(cartItems) && cartItems.length > 0) {
       for (const it of cartItems) {
@@ -195,7 +195,7 @@ function CheckoutInner() {
             <div className="pt-4 mt-2 border-t space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(subtotal)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? 'Free' : new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(shipping)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Tax (7%)</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(tax)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Tax (15% VAT)</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(tax)}</span></div>
               <div className="flex justify-between font-semibold pt-2"><span>Total</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(total)}</span></div>
               <div className="text-xs text-muted-foreground">Free shipping on orders over R3000. Standard shipping R130.</div>
             </div>

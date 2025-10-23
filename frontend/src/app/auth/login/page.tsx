@@ -1,12 +1,15 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { fetchJson, setAuthToken } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +24,7 @@ export default function LoginPage() {
       });
       const token = loginRes?.token;
       if (token) setAuthToken(token);
-      // After successful login, migrate guest cart & wishlist to backend or clear server if none
+      // After successful login, merge guest cart & wishlist with server data (don't clear server)
       try {
         const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
         const guestCart = raw ? JSON.parse(raw) : [];
@@ -39,10 +42,8 @@ export default function LoginPage() {
             localStorage.setItem('bf_cart', JSON.stringify([]));
             if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
           } catch {}
-        } else {
-          // No guest cart: ensure server cart is empty on login per requirement
-          try { await fetchJson('/api/cart', { method: 'DELETE' }); } catch {}
         }
+        // Server cart persists - no deletion
 
         // Wishlist migration
         const rawW = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
@@ -61,10 +62,8 @@ export default function LoginPage() {
             localStorage.setItem('bf_wishlist', JSON.stringify([]));
             if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
           } catch {}
-        } else {
-          // No guest wishlist: ensure server wishlist is empty
-          try { await fetchJson('/api/wishlist', { method: 'DELETE' }); } catch {}
         }
+        // Server wishlist persists - no deletion
       } catch {}
       // After successful login, determine role and redirect accordingly
       try {
@@ -114,14 +113,29 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-zinc-300">Password</label>
-              <input
-                type="password"
-                className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative mt-2">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 pr-10 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <Link href="/auth/forgot-password" className="text-sm text-zinc-400 hover:text-white underline">
+                Forgot password?
+              </Link>
             </div>
 
             {error && (
