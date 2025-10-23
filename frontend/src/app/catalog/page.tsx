@@ -22,7 +22,8 @@ export default function CatalogPage() {
     let active = true;
     (async () => {
       try {
-        const res: any = await fetchJson('/api/products');
+        const params = new URLSearchParams({ limit: '24', fields: 'name,price,thumbnail' });
+        const res: any = await fetchJson(`/api/products?${params.toString()}`);
         const list: Product[] = res?.data || res?.products || res || [];
         if (active) setProducts(Array.isArray(list) ? list : []);
       } catch (e: any) {

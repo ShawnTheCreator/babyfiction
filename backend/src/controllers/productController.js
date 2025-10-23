@@ -1,5 +1,9 @@
 import { body } from 'express-validator';
 import Product from '../models/Product.js';
+
+// Simple in-memory cache for product lists
+const listCache = new Map(); // key -> { ts: number, data: any }
+const LIST_TTL_MS = 30 * 1000; // 30s
 import { createError } from '../utils/errorUtils.js';
 
 // @desc    Get all products with pagination, filtering and sorting
@@ -32,6 +36,19 @@ export const getProducts = async (req, res, next) => {
     if (req.query.inStock === 'true') {
       queryObj.countInStock = { $gt: 0 };
     }
+
+    // Only active products by default
+    if (typeof queryObj.isActive === 'undefined') {
+      queryObj.isActive = true;
+    }
+
+    // Prepare cache key
+    const cacheKey = `list:${JSON.stringify({ q: queryObj, page, limit, sort: req.query.sort || '-createdAt', fields: req.query.fields || 'default' })}`;
+    const cached = listCache.get(cacheKey);
+    if (cached && (Date.now() - cached.ts) < LIST_TTL_MS) {
+      res.set('Cache-Control', 'public, max-age=30, s-maxage=60');
+      return res.status(200).json(cached.data);
+    }
     
     let query = Product.find(queryObj);
     
@@ -43,18 +60,26 @@ export const getProducts = async (req, res, next) => {
       query = query.sort('-createdAt');
     }
     
+    // Field projection: default minimal fields for list unless user requested fields
+    const fields = req.query.fields ? req.query.fields.split(',').join(' ') : 'name price thumbnail category brand rating.average createdAt';
+    query = query.select(fields).lean();
+
     // Pagination
     const total = await Product.countDocuments(queryObj);
     const products = await query.skip(skip).limit(limit);
-    
-    res.status(200).json({
+
+    const payload = {
       success: true,
       count: products.length,
       total,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
       products
-    });
+    };
+
+    listCache.set(cacheKey, { ts: Date.now(), data: payload });
+    res.set('Cache-Control', 'public, max-age=30, s-maxage=60');
+    res.status(200).json(payload);
   } catch (error) {
     next(error);
   }
