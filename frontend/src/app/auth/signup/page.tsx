@@ -19,10 +19,26 @@ function SignupInner() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  // Password validation
+  const passwordRequirements = {
+    minLength: password.length >= 8,
+    hasUpperCase: /[A-Z]/.test(password),
+    hasLowerCase: /[a-z]/.test(password),
+    hasNumber: /[0-9]/.test(password),
+    hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+  };
+
+  const isPasswordValid = Object.values(passwordRequirements).every(Boolean);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!isPasswordValid) {
+      setError('Password does not meet requirements');
+      return;
+    }
     if (password !== confirm) {
       setError('Passwords do not match');
       return;
@@ -102,7 +118,10 @@ function SignupInner() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
                   required
+                  minLength={8}
                 />
                 <button
                   type="button"
@@ -112,6 +131,25 @@ function SignupInner() {
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+              {(passwordFocused || password) && (
+                <div className="mt-2 space-y-1 text-xs">
+                  <p className={`flex items-center gap-1 ${passwordRequirements.minLength ? 'text-green-400' : 'text-zinc-400'}`}>
+                    <span>{passwordRequirements.minLength ? '✓' : '○'}</span> At least 8 characters
+                  </p>
+                  <p className={`flex items-center gap-1 ${passwordRequirements.hasUpperCase ? 'text-green-400' : 'text-zinc-400'}`}>
+                    <span>{passwordRequirements.hasUpperCase ? '✓' : '○'}</span> One uppercase letter
+                  </p>
+                  <p className={`flex items-center gap-1 ${passwordRequirements.hasLowerCase ? 'text-green-400' : 'text-zinc-400'}`}>
+                    <span>{passwordRequirements.hasLowerCase ? '✓' : '○'}</span> One lowercase letter
+                  </p>
+                  <p className={`flex items-center gap-1 ${passwordRequirements.hasNumber ? 'text-green-400' : 'text-zinc-400'}`}>
+                    <span>{passwordRequirements.hasNumber ? '✓' : '○'}</span> One number
+                  </p>
+                  <p className={`flex items-center gap-1 ${passwordRequirements.hasSpecialChar ? 'text-green-400' : 'text-zinc-400'}`}>
+                    <span>{passwordRequirements.hasSpecialChar ? '✓' : '○'}</span> One special character (!@#$%^&*)
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
