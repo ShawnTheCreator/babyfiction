@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ShoppingCart, Search, User, Menu, X, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,11 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const pathname = usePathname();
+  const router = useRouter();
   const { user } = useCurrentUser();
 
   const handleLogout = () => {
@@ -189,6 +191,15 @@ const Navbar = () => {
             <Input
               placeholder="Search products..."
               className="w-full bg-secondary/50 border-border focus-visible:ring-primary"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const q = (searchText || '').trim();
+                  if (q) router.push(`/catalog?query=${encodeURIComponent(q)}`);
+                  setSearchOpen(false);
+                }
+              }}
             />
           </div>
         )}

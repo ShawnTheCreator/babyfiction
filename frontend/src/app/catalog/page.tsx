@@ -1,7 +1,8 @@
 "use client";
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { fetchJson } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { fetchJson, getAuthToken } from '@/lib/api';
 import { useCurrentUser } from '@/lib/auth';
 
 type Product = {
@@ -17,6 +18,7 @@ export default function CatalogPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useCurrentUser();
+  const router = useRouter();
 
   useEffect(() => {
     let active = true;
@@ -78,23 +80,31 @@ export default function CatalogPage() {
             )}
             <div className="mt-4 flex items-center gap-3">
               <button
-                className={`rounded px-3 py-2 ${user ? 'bg-black text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
-                disabled={!user}
+                className={`rounded px-3 py-2 ${user ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'}`}
                 title={user ? 'Add to cart' : 'Login required to add to cart'}
+                onClick={async (e) => {
+                  e.preventDefault();
+                  const token = getAuthToken();
+                  if (!token) { router.push('/auth/login'); return; }
+                  try {
+                    await fetchJson('/api/cart/items', { method: 'POST', body: JSON.stringify({ product: p._id, quantity: 1 }) });
+                    if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
+                  } catch {}
+                }}
               >
                 Add to Cart
               </button>
               <button
-                className={`rounded px-3 py-2 ${user ? 'bg-black text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
-                disabled={!user}
+                className={`rounded px-3 py-2 ${user ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'}`}
                 title={user ? 'Rate product' : 'Login required to rate'}
+                onClick={(e) => { e.preventDefault(); router.push(user ? `/product/${encodeURIComponent(p._id)}` : '/auth/login'); }}
               >
                 Rate
               </button>
               <button
-                className={`rounded px-3 py-2 ${user ? 'bg-black text-white' : 'bg-gray-200 text-gray-500 cursor-not-allowed'}`}
-                disabled={!user}
+                className={`rounded px-3 py-2 ${user ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'}`}
                 title={user ? 'Comment on product' : 'Login required to comment'}
+                onClick={(e) => { e.preventDefault(); router.push(user ? `/product/${encodeURIComponent(p._id)}` : '/auth/login'); }}
               >
                 Comment
               </button>

@@ -115,13 +115,15 @@ const Products = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  >
-                    Quick View
-                  </Button>
+                  <Link href={`/product/${product.id}`} className="absolute top-4 right-4">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    >
+                      Quick View
+                    </Button>
+                  </Link>
                 </div>
                 <div className="p-6">
                   <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">

@@ -81,11 +81,23 @@ const ProductDetail = () => {
     return () => { active = false; };
   }, [id]);
 
-  const handleAddToCart = () => {
-    toast({
-      title: "Added to cart!",
-      description: `${quantity}x ${product.name} - Size ${selectedSize}`,
-    });
+  const handleAddToCart = async () => {
+    if (!product) return;
+    const token = getAuthToken();
+    if (!token) {
+      if (typeof window !== 'undefined') window.location.href = '/auth/login';
+      return;
+    }
+    try {
+      await fetchJson('/api/cart/items', {
+        method: 'POST',
+        body: JSON.stringify({ product: product.id, quantity, size: selectedSize })
+      });
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
+      toast({ title: 'Added to cart', description: `${quantity}× ${product.name} (Size ${selectedSize})` });
+    } catch {
+      toast({ title: 'Could not add to cart', description: 'Please try again.' });
+    }
   };
 
   const toggleWishlist = async () => {
@@ -258,7 +270,13 @@ const ProductDetail = () => {
               <Button variant="outline" size="lg" onClick={toggleWishlist} title="Toggle wishlist">
                 <Heart className="h-5 w-5" />
               </Button>
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" onClick={() => {
+                try {
+                  const url = typeof window !== 'undefined' ? window.location.href : '';
+                  if (url) navigator.clipboard?.writeText(url);
+                  toast({ title: 'Link copied', description: 'Product link copied to clipboard.' });
+                } catch {}
+              }}>
                 <Share2 className="h-5 w-5" />
               </Button>
             </div>

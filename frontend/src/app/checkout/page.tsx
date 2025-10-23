@@ -31,6 +31,10 @@ function CheckoutInner() {
   const [comment, setComment] = useState('');
   const [reviews, setReviews] = useState<Array<{ rating: number; comment: string; user?: string }>>([]);
 
+  // Cart data
+  const [cartItems, setCartItems] = useState<Array<{ _id?: string; quantity: number; product: any }>>([]);
+  const [cartLoading, setCartLoading] = useState(true);
+
   useEffect(() => {
     try {
       const raw = typeof window !== 'undefined' ? localStorage.getItem(`bf_reviews_${id}`) : null;
@@ -63,6 +67,45 @@ function CheckoutInner() {
     const amount = isNaN(num) ? undefined : num;
     track({ type: 'checkout_start', amount });
   }, [id]);
+
+  // Load authenticated user's cart (server cart)
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res: any = await fetchJson('/api/cart');
+        const cart = res?.cart || res?.data || res;
+        const items = Array.isArray(cart?.items) ? cart.items : [];
+        if (active) setCartItems(items);
+      } catch {
+        // ignore for now
+      } finally {
+        if (active) setCartLoading(false);
+      }
+    })();
+    return () => { active = false };
+  }, []);
+
+  // Totals: prefer cart, fallback to single item from URL params
+  const { subtotal, shipping, tax, total } = useMemo(() => {
+    const TAX_RATE = 0.07; // 7%
+    let sub = 0;
+    if (Array.isArray(cartItems) && cartItems.length > 0) {
+      for (const it of cartItems) {
+        const p = it?.product || {};
+        const priceNum = typeof p.price === 'number' ? p.price : 0;
+        sub += priceNum * (it?.quantity || 0);
+      }
+    } else {
+      // fallback from URL param price (may include symbols)
+      const num = typeof price === 'string' ? parseFloat(price.replace(/[^\d.]/g, '')) : 0;
+      sub = isNaN(num) ? 0 : num;
+    }
+    const ship = sub >= 3000 ? 0 : (sub > 0 ? 130 : 0);
+    const t = sub * TAX_RATE;
+    const tot = sub + ship + t;
+    return { subtotal: sub, shipping: ship, tax: t, total: tot };
+  }, [cartItems, price]);
 
   const handlePay = async () => {
     setProcessing(true);
@@ -109,16 +152,52 @@ function CheckoutInner() {
       <div className="grid md:grid-cols-2 gap-8">
         <div className="rounded-lg border bg-white p-6">
           <h2 className="text-xl font-semibold">Order Summary</h2>
-          <div className="mt-4 flex items-start gap-4">
-            {resolvedImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={resolvedImage} alt={name} className="h-24 w-24 rounded object-cover" />
+          <div className="mt-4 space-y-4">
+            {cartLoading ? (
+              <div className="text-sm text-muted-foreground">Loading cart…</div>
+            ) : (Array.isArray(cartItems) && cartItems.length > 0) ? (
+              cartItems.map((it) => {
+                const p = it?.product || {};
+                const img = p?.thumbnail || (Array.isArray(p?.images) ? p.images[0] : '');
+                return (
+                  <div key={it?._id || p?._id} className="flex items-start gap-4">
+                    {img ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img} alt={p?.name || 'Product'} className="h-20 w-20 rounded object-cover" />
+                    ) : (
+                      <div className="h-20 w-20 rounded bg-gray-100" />
+                    )}
+                    <div className="flex-1">
+                      <div className="text-base font-medium">{p?.name || 'Product'}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Qty: {it?.quantity || 1}</div>
+                    </div>
+                    <div className="text-sm font-medium">
+                      {new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format((p?.price || 0) * (it?.quantity || 1))}
+                    </div>
+                  </div>
+                );
+              })
             ) : (
-              <div className="h-24 w-24 rounded bg-gray-100" />
+              <div className="flex items-start gap-4">
+                {resolvedImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={resolvedImage} alt={name} className="h-20 w-20 rounded object-cover" />
+                ) : (
+                  <div className="h-20 w-20 rounded bg-gray-100" />
+                )}
+                <div className="flex-1">
+                  <div className="text-base font-medium">{name}</div>
+                </div>
+                <div className="text-sm font-medium">{price}</div>
+              </div>
             )}
-            <div>
-              <div className="text-base font-medium">{name}</div>
-              <div className="mt-1 text-sm text-muted-foreground">{price}</div>
+
+            <div className="pt-4 mt-2 border-t space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? 'Free' : new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Tax (7%)</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(tax)}</span></div>
+              <div className="flex justify-between font-semibold pt-2"><span>Total</span><span>{new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(total)}</span></div>
+              <div className="text-xs text-muted-foreground">Free shipping on orders over R3000. Standard shipping R130.</div>
             </div>
           </div>
         </div>

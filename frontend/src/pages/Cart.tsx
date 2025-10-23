@@ -68,7 +68,7 @@ const Cart = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-  const shipping = 320;
+  const shipping = subtotal >= 3000 ? 0 : (subtotal > 0 ? 130 : 0);
   const total = subtotal + shipping;
 
   if (loading) {
@@ -214,7 +214,7 @@ const Cart = () => {
 
               <div className="mt-6 p-4 bg-foreground/5 rounded-lg">
                 <p className="text-sm text-center">
-                  Free shipping on orders over <span className="font-semibold">R8,000</span>
+                  Free shipping on orders over <span className="font-semibold">R3,000</span>. Standard shipping R130.
                 </p>
               </div>
             </Card>

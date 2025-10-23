@@ -46,24 +46,11 @@ export const createOrder = async (req, res, next) => {
     }
     
     // Calculate tax and shipping
-    const taxRate = 0.07; // 7% tax
+    const taxRate = 0.07; // 7% tax (adjust later if needed)
     const tax = subtotal * taxRate;
-    
-    // Determine shipping cost based on method
-    let shippingCost = 0;
-    switch (shippingMethod) {
-      case 'standard':
-        shippingCost = 5.99;
-        break;
-      case 'express':
-        shippingCost = 12.99;
-        break;
-      case 'overnight':
-        shippingCost = 24.99;
-        break;
-      default:
-        shippingCost = 5.99;
-    }
+
+    // Shipping rule: Free shipping for orders over R3000, else R130
+    let shippingCost = subtotal >= 3000 ? 0 : 130;
     
     // Calculate total
     const total = subtotal + tax + shippingCost;
