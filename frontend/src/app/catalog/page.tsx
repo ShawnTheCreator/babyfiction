@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { fetchJson, getAuthToken } from '@/lib/api';
@@ -14,7 +14,7 @@ type Product = {
   thumbnail?: string;
 };
 
-export default function CatalogPage() {
+function CatalogContent() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -172,5 +172,17 @@ export default function CatalogPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-32 pb-20 flex items-center justify-center">
+        <div className="text-center text-sm text-muted-foreground">Loading catalog...</div>
+      </div>
+    }>
+      <CatalogContent />
+    </Suspense>
   );
 }
