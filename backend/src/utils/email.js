@@ -18,11 +18,22 @@ export const sendEmail = async (options) => {
   const fromName = process.env.EMAIL_FROM_NAME || process.env.FROM_NAME || 'Babyfiction';
   const fromAddress = process.env.EMAIL_FROM_ADDRESS || process.env.FROM_EMAIL;
 
-  // If required values are missing, log and exit early (do not throw)
+  // If required values are missing, log to console in development
   if (!host || !user || !pass || !fromAddress) {
-    console.warn('[email] Missing SMTP configuration. Email not sent.', {
-      host: Boolean(host), user: Boolean(user), pass: Boolean(pass), fromAddress: Boolean(fromAddress)
-    });
+    console.log('\n' + '='.repeat(80));
+    console.log('📧 EMAIL (Development Mode - SMTP not configured)');
+    console.log('='.repeat(80));
+    console.log('To:', options.to);
+    console.log('Subject:', options.subject);
+    console.log('-'.repeat(80));
+    console.log('Text Content:');
+    console.log(options.text || 'No text content');
+    if (options.html) {
+      console.log('-'.repeat(80));
+      console.log('HTML Content:');
+      console.log(options.html.substring(0, 500) + '...');
+    }
+    console.log('='.repeat(80) + '\n');
     return;
   }
 
