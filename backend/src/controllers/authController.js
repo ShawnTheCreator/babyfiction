@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { body } from 'express-validator';
 import User from '../models/User.js';
 import { createError } from '../utils/errorUtils.js';
-import { sendEmail } from '../utils/email.js';
+import { sendEmail } from '../utils/emailResend.js';
 import { sendPasswordResetEmail } from '../services/emailService.js';
 import { isRateLimited, trackFailedAttempt, clearFailedAttempts } from '../middleware/recaptcha.js';
 

@@ -1,47 +1,12 @@
-import nodemailer from 'nodemailer';
-
-// Email configuration
-const createTransporter = () => {
-  // For development: use Ethereal (fake SMTP) or configure real SMTP
-  // For production: use SendGrid, AWS SES, or other email service
-  
-  const isDevelopment = process.env.NODE_ENV !== 'production';
-  
-  if (isDevelopment && !process.env.EMAIL_HOST) {
-    // Development: Log emails to console instead of sending
-    return {
-      sendMail: async (options) => {
-        console.log('\n📧 Email would be sent:');
-        console.log('To:', options.to);
-        console.log('Subject:', options.subject);
-        console.log('Body:', options.html || options.text);
-        console.log('---\n');
-        return { messageId: 'dev-' + Date.now() };
-      }
-    };
-  }
-
-  // Production or configured SMTP
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || '587'),
-    secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-};
+import { sendEmail } from '../utils/emailResend.js';
 
 /**
  * Send password reset email
  */
 export const sendPasswordResetEmail = async (to, resetToken, userName) => {
-  const transporter = createTransporter();
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
   
-  const mailOptions = {
-    from: `"${process.env.EMAIL_FROM_NAME || 'Babyfiction'}" <${process.env.EMAIL_FROM || 'noreply@babyfiction.com'}>`,
+  const emailOptions = {
     to,
     subject: 'Password Reset Request - Babyfiction',
     html: `
@@ -99,8 +64,8 @@ export const sendPasswordResetEmail = async (to, resetToken, userName) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent:', info.messageId);
+    const info = await sendEmail(emailOptions);
+    console.log('Password reset email sent');
     return info;
   } catch (error) {
     console.error('Error sending password reset email:', error);
@@ -112,8 +77,6 @@ export const sendPasswordResetEmail = async (to, resetToken, userName) => {
  * Send order confirmation email
  */
 export const sendOrderConfirmationEmail = async (to, order, userName) => {
-  const transporter = createTransporter();
-  
   const orderUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/orders/${order._id}`;
   
   // Format items list
@@ -135,8 +98,7 @@ export const sendOrderConfirmationEmail = async (to, order, userName) => {
   const tax = order.pricing?.tax || 0;
   const total = order.pricing?.total || 0;
 
-  const mailOptions = {
-    from: `"${process.env.EMAIL_FROM_NAME || 'Babyfiction'}" <${process.env.EMAIL_FROM || 'noreply@babyfiction.com'}>`,
+  const emailOptions = {
     to,
     subject: `Order Confirmation #${order._id} - Babyfiction`,
     html: `
@@ -255,8 +217,8 @@ export const sendOrderConfirmationEmail = async (to, order, userName) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Order confirmation email sent:', info.messageId);
+    const info = await sendEmail(emailOptions);
+    console.log('Order confirmation email sent');
     return info;
   } catch (error) {
     console.error('Error sending order confirmation email:', error);

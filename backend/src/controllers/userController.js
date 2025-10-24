@@ -1,4 +1,5 @@
 import User from '../models/User.js';
+import { createError } from '../utils/errorUtils.js';
 
 export const listUsers = async (req, res) => {
   try {
@@ -38,5 +39,109 @@ export const listUsers = async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Failed to fetch users' });
+  }
+};
+
+// @desc    Deactivate user account
+// @route   PUT /api/users/:id/deactivate
+// @access  Private/Admin
+export const deactivateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { duration } = req.body; // duration in days, or 'permanent'
+
+    const user = await User.findById(id);
+    if (!user) {
+      return next(createError('User not found', 404));
+    }
+
+    // Prevent deactivating admin accounts
+    if (user.role === 'admin') {
+      return next(createError('Cannot deactivate admin accounts', 403));
+    }
+
+    user.isActive = false;
+    
+    if (duration === 'permanent') {
+      user.deactivatedUntil = null;
+    } else if (duration && !isNaN(duration)) {
+      const days = parseInt(duration);
+      user.deactivatedUntil = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: duration === 'permanent' 
+        ? 'User account deactivated permanently' 
+        : `User account deactivated for ${duration} days`,
+      user: {
+        _id: user._id,
+        email: user.email,
+        isActive: user.isActive,
+        deactivatedUntil: user.deactivatedUntil
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reactivate user account
+// @route   PUT /api/users/:id/reactivate
+// @access  Private/Admin
+export const reactivateUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return next(createError('User not found', 404));
+    }
+
+    user.isActive = true;
+    user.deactivatedUntil = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'User account reactivated successfully',
+      user: {
+        _id: user._id,
+        email: user.email,
+        isActive: user.isActive
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Delete user account
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+export const deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return next(createError('User not found', 404));
+    }
+
+    // Prevent deleting admin accounts
+    if (user.role === 'admin') {
+      return next(createError('Cannot delete admin accounts', 403));
+    }
+
+    await User.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: 'User account deleted successfully'
+    });
+  } catch (error) {
+    next(error);
   }
 };

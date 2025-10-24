@@ -1,7 +1,7 @@
 import { body } from 'express-validator';
 import Newsletter from '../models/Newsletter.js';
 import { createError } from '../utils/errorUtils.js';
-import { sendEmail } from '../utils/email.js';
+import { sendEmail } from '../utils/emailResend.js';
 
 // @desc    Subscribe to newsletter
 // @route   POST /api/newsletter/subscribe
