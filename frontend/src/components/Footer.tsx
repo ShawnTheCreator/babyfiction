@@ -81,7 +81,7 @@ const Footer = () => {
 
         <div className="border-t border-primary-foreground/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/70 text-sm">
-            © 2024 Babyfiction. All rights reserved.
+            © 2025 Babyfiction. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
             <Link href="/privacy" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">

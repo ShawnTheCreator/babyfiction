@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -14,6 +15,9 @@ import {
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceRange, setPriceRange] = useState("all");
+  const [sortBy, setSortBy] = useState("featured");
   const [products, setProducts] = useState<Array<{ id: string; name: string; price: number; image?: string; category?: string }>>([]);
 
   async function loadProducts() {
@@ -40,12 +44,33 @@ const Products = () => {
     void loadProducts();
   }, []);
 
-  const categories = ["all", "clothing", "shoes", "accessories", "bags", "jewelry", "watches"];
+  // Actual categories from your database
+  const categories = ["all", "hats", "shirts", "hoodies", "pants"];
 
-  const filteredProducts =
-    selectedCategory === "all"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  // Filter products by category, search, and price
+  const filteredProducts = products
+    .filter((p) => {
+      // Category filter
+      if (selectedCategory !== "all" && p.category !== selectedCategory) return false;
+      
+      // Search filter
+      if (searchQuery && !p.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      
+      // Price filter
+      if (priceRange === "under-300" && p.price >= 300) return false;
+      if (priceRange === "300-500" && (p.price < 300 || p.price > 500)) return false;
+      if (priceRange === "500-800" && (p.price < 500 || p.price > 800)) return false;
+      if (priceRange === "over-800" && p.price <= 800) return false;
+      
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort products
+      if (sortBy === "price-low") return a.price - b.price;
+      if (sortBy === "price-high") return b.price - a.price;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      return 0; // featured (default order)
+    });
 
   return (
     <div className="min-h-screen pt-32 pb-20">
@@ -60,17 +85,32 @@ const Products = () => {
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12 animate-fade-up [animation-delay:100ms]">
+        {/* Search Bar */}
+        <div className="mb-8 animate-fade-up [animation-delay:100ms]">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 text-lg"
+            />
+          </div>
+        </div>
+
+        {/* Category Filters */}
+        <div className="mb-6 animate-fade-up [animation-delay:150ms]">
+          <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Category</h3>
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 onClick={() => setSelectedCategory(category)}
-                className={`${
+                className={`capitalize ${
                   selectedCategory === category
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-black text-white hover:bg-black/90"
                     : "hover:bg-accent/10 hover:text-accent hover:border-accent"
                 } transition-all duration-300`}
               >
@@ -78,24 +118,47 @@ const Products = () => {
               </Button>
             ))}
           </div>
+        </div>
 
-          <div className="flex gap-2 items-center">
-            <Select defaultValue="featured">
-              <SelectTrigger className="w-[180px]">
+        {/* Price & Sort Filters */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12 animate-fade-up [animation-delay:200ms]">
+          <div className="flex gap-3 items-center">
+            <div>
+              <label className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider block">Price Range</label>
+              <Select value={priceRange} onValueChange={setPriceRange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="All Prices" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Prices</SelectItem>
+                  <SelectItem value="under-300">Under R300</SelectItem>
+                  <SelectItem value="300-500">R300 - R500</SelectItem>
+                  <SelectItem value="500-800">R500 - R800</SelectItem>
+                  <SelectItem value="over-800">Over R800</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider block">Sort By</label>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="featured">Featured</SelectItem>
                 <SelectItem value="price-low">Price: Low to High</SelectItem>
                 <SelectItem value="price-high">Price: High to Low</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
+                <SelectItem value="name">Name: A to Z</SelectItem>
               </SelectContent>
             </Select>
-
-            <Button variant="outline" size="icon">
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
           </div>
+        </div>
+
+        {/* Results Count */}
+        <div className="mb-6 text-muted-foreground">
+          Showing {filteredProducts.length} of {products.length} products
         </div>
 
         {/* Products Grid */}
@@ -132,7 +195,7 @@ const Products = () => {
                   <h3 className="font-semibold text-lg mb-2 group-hover:text-foreground transition-colors">
                     {product.name}
                   </h3>
-                  <p className="text-xl font-bold">{product.price}</p>
+                  <p className="text-xl font-bold">R{product.price}</p>
                 </div>
               </Card>
             </Link>
