@@ -101,13 +101,13 @@ const Home = () => {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/catalog?category=hats">
+            <Link href="/catalog">
               <Button
                 size="lg"
                 variant="outline"
                 className="border-2 px-8 py-6 text-base hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
               >
-                Shop Hats
+                New Arrivals
               </Button>
             </Link>
           </div>
