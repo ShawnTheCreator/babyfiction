@@ -1,53 +1,61 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 const Home = () => {
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Premium Sneakers",
-      price: "R4,799",
-      image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80",
-      category: "Footwear",
-    },
-    {
-      id: 2,
-      name: "Designer Jacket",
-      price: "R9,599",
-      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80",
-      category: "Outerwear",
-    },
-    {
-      id: 3,
-      name: "Classic Watch",
-      price: "R7,199",
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
-      category: "Accessories",
-    },
-    {
-      id: 4,
-      name: "Luxury Bag",
-      price: "R12,799",
-      image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=80",
-      category: "Bags",
-    },
-  ];
+  const [hatProducts, setHatProducts] = useState<any[]>([]);
+  const [shirtProducts, setShirtProducts] = useState<any[]>([]);
+  const [hoodieProducts, setHoodieProducts] = useState<any[]>([]);
+  const [pantProducts, setPantProducts] = useState<any[]>([]);
 
-  const collections = [
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const res = await fetch(`${base}/api/products?limit=100`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const products = data?.products || [];
+
+        // Filter products by category
+        setHatProducts(products.filter((p: any) => p.category === 'hats').slice(0, 3));
+        setShirtProducts(products.filter((p: any) => p.category === 'shirts').slice(0, 3));
+        setHoodieProducts(products.filter((p: any) => p.category === 'hoodies').slice(0, 3));
+        setPantProducts(products.filter((p: any) => p.category === 'pants').slice(0, 3));
+      } catch (e) {
+        console.error('Failed to load products', e);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  const categories = [
     {
-      title: "New Arrivals",
-      subtitle: "Fresh drops every week",
-      image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=800&q=80",
-      link: "/products?filter=new",
+      title: "Hats",
+      subtitle: "Complete your look",
+      image: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&q=80",
+      link: "/catalog?category=hats",
     },
     {
-      title: "Best Sellers",
-      subtitle: "Customer favorites",
-      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80",
-      link: "/products?filter=bestsellers",
+      title: "Shirts",
+      subtitle: "Essential wardrobe",
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
+      link: "/catalog?category=shirts",
+    },
+    {
+      title: "Hoodies",
+      subtitle: "Stay cozy",
+      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
+      link: "/catalog?category=hoodies",
+    },
+    {
+      title: "Pants",
+      subtitle: "Perfect fit",
+      image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80",
+      link: "/catalog?category=pants",
     },
   ];
 
@@ -84,7 +92,7 @@ const Home = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-up [animation-delay:400ms]">
-            <Link href="/products">
+            <Link href="/catalog">
               <Button
                 size="lg"
                 className="bg-primary hover:bg-primary/90 text-primary-foreground group px-8 py-6 text-base"
@@ -93,13 +101,13 @@ const Home = () => {
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
-            <Link href="/products?filter=new">
+            <Link href="/catalog?category=hats">
               <Button
                 size="lg"
                 variant="outline"
                 className="border-2 px-8 py-6 text-base hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
               >
-                New Arrivals
+                Shop Hats
               </Button>
             </Link>
           </div>
@@ -107,10 +115,16 @@ const Home = () => {
 
       </section>
 
-      {/* Collections */}
+      {/* Categories */}
       <section className="max-w-[1400px] mx-auto px-6 py-20">
-        <div className="grid md:grid-cols-2 gap-6">
-          {collections.map((collection, index) => (
+        <div className="mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
+            Shop by Category
+          </h2>
+          <p className="text-muted-foreground">Explore our collection</p>
+        </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {categories.map((collection, index) => (
             <Link
               key={collection.title}
               href={collection.link}
@@ -140,54 +154,201 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="max-w-[1400px] mx-auto px-6 py-20">
-        <div className="flex justify-between items-end mb-12">
-          <div>
-            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
-              Featured Products
-            </h2>
-            <p className="text-muted-foreground">Handpicked essentials for your wardrobe</p>
-          </div>
-          <Link href="/products">
-            <Button variant="ghost" className="group">
-              View All
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product, index) => (
-            <Link
-              key={product.id}
-              href={`/product/${product.id}`}
-              className="group animate-flip-in perspective-1000"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500 transform hover:rotate-y-6 hover:scale-105">
-                <div className="relative aspect-square overflow-hidden bg-secondary">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                </div>
-                <div className="p-6">
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                    {product.category}
-                  </p>
-                  <h3 className="font-semibold text-lg mb-2 transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-xl font-bold">{product.price}</p>
-                </div>
-              </Card>
+      {/* Hats Section */}
+      {hatProducts.length > 0 && (
+        <section className="max-w-[1400px] mx-auto px-6 py-20">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
+                Hats
+              </h2>
+              <p className="text-muted-foreground">Complete your look</p>
+            </div>
+            <Link href="/catalog?category=hats">
+              <Button variant="ghost" className="group">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {hatProducts.map((product: any, index: number) => (
+              <Link
+                key={product._id}
+                href={`/product/${product._id}`}
+                className="group animate-flip-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500">
+                  <div className="relative aspect-square overflow-hidden bg-secondary">
+                    <img
+                      src={product.thumbnail || product.images?.[0] || 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&q=80'}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                      {product.category}
+                    </p>
+                    <h3 className="font-semibold text-lg mb-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-xl font-bold">R{product.price}</p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Shirts Section */}
+      {shirtProducts.length > 0 && (
+        <section className="max-w-[1400px] mx-auto px-6 py-20">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
+                Shirts
+              </h2>
+              <p className="text-muted-foreground">Essential wardrobe staples</p>
+            </div>
+            <Link href="/catalog?category=shirts">
+              <Button variant="ghost" className="group">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {shirtProducts.map((product: any, index: number) => (
+              <Link
+                key={product._id}
+                href={`/product/${product._id}`}
+                className="group animate-flip-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500">
+                  <div className="relative aspect-square overflow-hidden bg-secondary">
+                    <img
+                      src={product.thumbnail || product.images?.[0] || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80'}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                      {product.category}
+                    </p>
+                    <h3 className="font-semibold text-lg mb-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-xl font-bold">R{product.price}</p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Hoodies Section */}
+      {hoodieProducts.length > 0 && (
+        <section className="max-w-[1400px] mx-auto px-6 py-20">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
+                Hoodies
+              </h2>
+              <p className="text-muted-foreground">Stay cozy and stylish</p>
+            </div>
+            <Link href="/catalog?category=hoodies">
+              <Button variant="ghost" className="group">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {hoodieProducts.map((product: any, index: number) => (
+              <Link
+                key={product._id}
+                href={`/product/${product._id}`}
+                className="group animate-flip-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500">
+                  <div className="relative aspect-square overflow-hidden bg-secondary">
+                    <img
+                      src={product.thumbnail || product.images?.[0] || 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80'}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                      {product.category}
+                    </p>
+                    <h3 className="font-semibold text-lg mb-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-xl font-bold">R{product.price}</p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Pants Section */}
+      {pantProducts.length > 0 && (
+        <section className="max-w-[1400px] mx-auto px-6 py-20">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
+                Pants
+              </h2>
+              <p className="text-muted-foreground">Perfect fit for every occasion</p>
+            </div>
+            <Link href="/catalog?category=pants">
+              <Button variant="ghost" className="group">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pantProducts.map((product: any, index: number) => (
+              <Link
+                key={product._id}
+                href={`/product/${product._id}`}
+                className="group animate-flip-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <Card className="overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-500">
+                  <div className="relative aspect-square overflow-hidden bg-secondary">
+                    <img
+                      src={product.thumbnail || product.images?.[0] || 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80'}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                      {product.category}
+                    </p>
+                    <h3 className="font-semibold text-lg mb-2">
+                      {product.name}
+                    </h3>
+                    <p className="text-xl font-bold">R{product.price}</p>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="max-w-[1400px] mx-auto px-6 py-20">
