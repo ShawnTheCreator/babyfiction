@@ -32,11 +32,12 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-3xl font-bold tracking-tighter">Babyfiction</h3>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
-              Premium fashion for the modern lifestyle. Curated collections that define elegance.
+              Premium fashion for the modern lifestyle. Curated collections that
+              define elegance.
             </p>
             <div className="flex gap-4 pt-4">
               <a
-                href="#"
+                href="https://www.instagram.com/babyfictionsza/"
                 className="hover:text-foreground transition-colors duration-300"
                 aria-label="Instagram"
               >
@@ -62,18 +63,22 @@ const Footer = () => {
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider">{title}</h4>
+              <h4 className="font-semibold mb-4 text-sm uppercase tracking-wider">
+                {title}
+              </h4>
               <ul className="space-y-3">
-                {links.filter((item) => Boolean(item && item.path)).map((item) => (
-                  <li key={item.path}>
-                    <Link
-                      href={item.path}
-                      className="text-primary-foreground/70 hover:text-primary-foreground transition-colors duration-300 text-sm"
-                    >
-                      {item.name}
-                    </Link>
-                  </li>
-                ))}
+                {links
+                  .filter((item) => Boolean(item && item.path))
+                  .map((item) => (
+                    <li key={item.path}>
+                      <Link
+                        href={item.path}
+                        className="text-primary-foreground/70 hover:text-primary-foreground transition-colors duration-300 text-sm"
+                      >
+                        {item.name}
+                      </Link>
+                    </li>
+                  ))}
               </ul>
             </div>
           ))}
@@ -84,10 +89,16 @@ const Footer = () => {
             © 2025 Babyfiction. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <Link href="/privacy" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+            <Link
+              href="/privacy"
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
               Privacy Policy
             </Link>
-            <Link href="/terms" className="text-primary-foreground/70 hover:text-primary-foreground transition-colors">
+            <Link
+              href="/terms"
+              className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
+            >
               Terms of Service
             </Link>
           </div>
