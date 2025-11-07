@@ -40,6 +40,7 @@ const Footer = () => {
                 href="https://www.instagram.com/babyfictionsza/"
                 className="hover:text-foreground transition-colors duration-300"
                 aria-label="Instagram"
+                target="_blank"
               >
                 <Instagram className="h-5 w-5" />
               </a>
