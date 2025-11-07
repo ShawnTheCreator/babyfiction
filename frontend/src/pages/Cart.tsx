@@ -206,7 +206,7 @@ const Cart = () => {
                 </Button>
               </Link>
 
-              <Link href="/products">
+              <Link href="/catalog">
                 <Button variant="outline" size="lg" className="w-full">
                   Continue Shopping
                 </Button>
