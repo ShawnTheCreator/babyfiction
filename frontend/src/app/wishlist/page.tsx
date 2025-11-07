@@ -85,7 +85,7 @@ export default function WishlistPage() {
         ) : items.length === 0 ? (
           <div className="text-center animate-fade-in">
             <p className="text-muted-foreground mb-6">No liked products yet.</p>
-            <Link href="/products" className="inline-block">
+            <Link href="/catalog" className="inline-block">
               <Button>Browse Products</Button>
             </Link>
           </div>
