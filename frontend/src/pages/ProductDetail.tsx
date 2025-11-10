@@ -153,7 +153,7 @@ const ProductDetail = () => {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Back Button */}
         <Link
-          href="/products"
+          href="/catalog"
           className="inline-flex items-center text-muted-foreground hover:text-accent transition-colors mb-8 animate-fade-in"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
