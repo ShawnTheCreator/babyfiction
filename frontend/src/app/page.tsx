@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, Heart, ShoppingBag, User } from 'lucide-react';
 import { fetchJson, getAuthToken } from '@/lib/api';
 
@@ -12,12 +13,16 @@ type Product = {
   image: string; 
   category?: string; 
   additional_images?: string[];
+  description?: string;
+  colors?: string[];
 };
 
 export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
   
   const heroImages = [
     '/assets/images/products/Product1.jpg',
@@ -55,21 +60,49 @@ export default function HomePage() {
     setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
   };
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to catalog page with search query
+      router.push(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        router.push(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+      }
+    }
+  };
+
   return (
     <>
       <main className="relative bg-white">
         {/* Search Bar - Mobile First */}
         <div className="px-4 pt-4 sm:px-6 lg:absolute lg:top-[137px] lg:left-[50px] lg:z-10 lg:px-0 lg:pt-0">
-          <div className="relative w-full sm:max-w-md lg:w-[367px] h-[50px]">
+          <form onSubmit={handleSearch} className="relative w-full sm:max-w-md lg:w-[367px] h-[50px]">
             <input
               type="text"
               placeholder="Search"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleSearchKeyDown}
               className="w-full h-full bg-[#d9d9d9] border-none rounded-[2px] px-4 pr-[50px] sm:px-5 font-[family-name:var(--font-accent)] text-xs text-black/66 tracking-[2px] uppercase placeholder:text-black/66 outline-none"
             />
-            <div className="absolute right-[15px] top-1/2 -translate-y-1/2 text-black/66">
+            <button
+              type="submit"
+              className="absolute right-[15px] top-1/2 -translate-y-1/2 text-black/66 hover:text-black transition-colors cursor-pointer"
+              aria-label="Search"
+            >
               <Search className="w-5 h-5" />
-            </div>
-          </div>
+            </button>
+          </form>
         </div>
 
         {/* Hero Section - Mobile First */}
@@ -137,9 +170,9 @@ export default function HomePage() {
           <div className="max-w-[1340px] mx-auto grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {/* Caps - small */}
             <Link
-              href="/catalog?category=Caps"
+              href="/catalog?subcategory=hats"
               className="relative h-[200px] sm:h-[230px] overflow-hidden cursor-pointer group rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]"
-              data-category="Caps"
+              data-category="hats"
             >
               <img
                 src="/assets/images/banners/caps.jpg"
@@ -160,9 +193,9 @@ export default function HomePage() {
 
             {/* T-Shirts - tall */}
             <Link
-              href="/catalog?category=T-Shirts"
+              href="/catalog?subcategory=t-shirts"
               className="relative h-[300px] sm:h-[400px] lg:row-span-2 lg:h-[616px] overflow-hidden cursor-pointer group rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]"
-              data-category="T-Shirts"
+              data-category="t-shirts"
             >
               <img
                 src="/assets/images/banners/tshirts.jpg"
@@ -183,7 +216,7 @@ export default function HomePage() {
 
             {/* Hoodies - wide and tall */}
             <Link
-              href="/catalog?category=hoodies"
+              href="/catalog?subcategory=hoodies"
               className="relative h-[300px] sm:col-span-2 sm:h-[400px] lg:row-span-2 lg:h-[616px] overflow-hidden cursor-pointer group rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_8px_25px_rgba(0,0,0,0.15)]"
               data-category="hoodies"
             >
