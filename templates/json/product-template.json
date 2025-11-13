@@ -1,0 +1,308 @@
+{
+  "_id": "unique-product-id",
+  "name": "BYFXNS Classic T-Shirt",
+  "description": "Premium cotton blend t-shirt featuring the iconic BYFXNS logo. Designed for ultimate comfort and style, this versatile piece is perfect for everyday wear. Features a classic crew neck, ribbed collar, and signature embroidered branding.",
+  "price": 350,
+  "compareAtPrice": 450,
+  "sku": "BF-TSHIRT-001",
+  "barcode": "1234567890123",
+  "category": "clothing",
+  "subcategory": "t-shirts",
+  "brand": "Babyfiction",
+  
+  "colorVariants": [
+    {
+      "colorName": "Black",
+      "colorCode": "#000000",
+      "sku": "BF-TSHIRT-001-BLK",
+      "price": 350,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-black-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-black-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-black-detail.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-black-lifestyle.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/tshirt-black-front.jpg",
+      "sizes": [
+        {
+          "size": "XS",
+          "stock": 5,
+          "sku": "BF-TSHIRT-001-BLK-XS"
+        },
+        {
+          "size": "S",
+          "stock": 15,
+          "sku": "BF-TSHIRT-001-BLK-S"
+        },
+        {
+          "size": "M",
+          "stock": 20,
+          "sku": "BF-TSHIRT-001-BLK-M"
+        },
+        {
+          "size": "L",
+          "stock": 18,
+          "sku": "BF-TSHIRT-001-BLK-L"
+        },
+        {
+          "size": "XL",
+          "stock": 12,
+          "sku": "BF-TSHIRT-001-BLK-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 8,
+          "sku": "BF-TSHIRT-001-BLK-2XL"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "White",
+      "colorCode": "#FFFFFF",
+      "sku": "BF-TSHIRT-001-WHT",
+      "price": 350,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-white-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-white-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-white-detail.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-white-lifestyle.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/tshirt-white-front.jpg",
+      "sizes": [
+        {
+          "size": "XS",
+          "stock": 8,
+          "sku": "BF-TSHIRT-001-WHT-XS"
+        },
+        {
+          "size": "S",
+          "stock": 12,
+          "sku": "BF-TSHIRT-001-WHT-S"
+        },
+        {
+          "size": "M",
+          "stock": 25,
+          "sku": "BF-TSHIRT-001-WHT-M"
+        },
+        {
+          "size": "L",
+          "stock": 20,
+          "sku": "BF-TSHIRT-001-WHT-L"
+        },
+        {
+          "size": "XL",
+          "stock": 15,
+          "sku": "BF-TSHIRT-001-WHT-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 10,
+          "sku": "BF-TSHIRT-001-WHT-2XL"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "Red",
+      "colorCode": "#DC2626",
+      "sku": "BF-TSHIRT-001-RED",
+      "price": 350,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-red-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-red-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-red-detail.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/tshirt-red-lifestyle.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/tshirt-red-front.jpg",
+      "sizes": [
+        {
+          "size": "XS",
+          "stock": 3,
+          "sku": "BF-TSHIRT-001-RED-XS"
+        },
+        {
+          "size": "S",
+          "stock": 10,
+          "sku": "BF-TSHIRT-001-RED-S"
+        },
+        {
+          "size": "M",
+          "stock": 15,
+          "sku": "BF-TSHIRT-001-RED-M"
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "sku": "BF-TSHIRT-001-RED-L"
+        },
+        {
+          "size": "XL",
+          "stock": 8,
+          "sku": "BF-TSHIRT-001-RED-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 5,
+          "sku": "BF-TSHIRT-001-RED-2XL"
+        }
+      ],
+      "isAvailable": true
+    }
+  ],
+  
+  "material": "100% Premium Cotton",
+  "weight": "180 GSM",
+  "careInstructions": [
+    "Machine wash cold with similar colors",
+    "Do not bleach",
+    "Tumble dry low",
+    "Iron on low heat if needed",
+    "Do not dry clean"
+  ],
+  
+  "features": [
+    "Premium cotton blend fabric",
+    "Classic crew neck design",
+    "Ribbed collar and cuffs",
+    "Embroidered BYFXNS logo",
+    "Pre-shrunk for perfect fit",
+    "Reinforced shoulder seams",
+    "Tagless for comfort"
+  ],
+  
+  "measurements": {
+    "XS": {
+      "chest": "86-91 cm",
+      "length": "68 cm",
+      "sleeve": "18 cm"
+    },
+    "S": {
+      "chest": "91-96 cm",
+      "length": "70 cm",
+      "sleeve": "19 cm"
+    },
+    "M": {
+      "chest": "96-101 cm",
+      "length": "72 cm",
+      "sleeve": "20 cm"
+    },
+    "L": {
+      "chest": "101-106 cm",
+      "length": "74 cm",
+      "sleeve": "21 cm"
+    },
+    "XL": {
+      "chest": "106-111 cm",
+      "length": "76 cm",
+      "sleeve": "22 cm"
+    },
+    "2XL": {
+      "chest": "111-116 cm",
+      "length": "78 cm",
+      "sleeve": "23 cm"
+    }
+  },
+  
+  "tags": [
+    "streetwear",
+    "casual",
+    "t-shirt",
+    "byfxns",
+    "cotton",
+    "unisex",
+    "trending"
+  ],
+  
+  "seo": {
+    "title": "BYFXNS Classic T-Shirt - Premium Cotton Streetwear | BabyFictions",
+    "description": "Shop the BYFXNS Classic T-Shirt. Premium cotton blend, iconic logo design, available in multiple colors and sizes. Free shipping on orders over R500.",
+    "keywords": [
+      "byfxns t-shirt",
+      "streetwear t-shirt",
+      "premium cotton tee",
+      "babyfictions clothing",
+      "south african streetwear",
+      "casual wear"
+    ]
+  },
+  
+  "shipping": {
+    "weight": 0.25,
+    "dimensions": {
+      "length": 30,
+      "width": 25,
+      "height": 3
+    },
+    "estimatedDelivery": "2-5 business days",
+    "freeShippingEligible": true
+  },
+  
+  "rating": {
+    "average": 4.7,
+    "count": 156,
+    "breakdown": {
+      "5": 98,
+      "4": 42,
+      "3": 12,
+      "2": 3,
+      "1": 1
+    }
+  },
+  
+  "reviews": [
+    {
+      "userId": "user-id-1",
+      "userName": "John D.",
+      "rating": 5,
+      "title": "Best quality t-shirt!",
+      "comment": "Absolutely love the quality and fit. The fabric is soft and the print is top-notch. Will definitely buy more colors!",
+      "verified": true,
+      "helpful": 24,
+      "createdAt": "2025-10-15T10:30:00Z",
+      "images": []
+    },
+    {
+      "userId": "user-id-2",
+      "userName": "Sarah M.",
+      "rating": 4,
+      "title": "Great fit, runs slightly small",
+      "comment": "Love the design and quality. Just note that it runs a bit small, so size up if you prefer a looser fit.",
+      "verified": true,
+      "helpful": 18,
+      "createdAt": "2025-10-20T14:22:00Z",
+      "images": []
+    }
+  ],
+  
+  "relatedProducts": [
+    "product-id-2",
+    "product-id-3",
+    "product-id-4"
+  ],
+  
+  "collections": [
+    "new-arrivals",
+    "bestsellers",
+    "summer-2025"
+  ],
+  
+  "isFeatured": true,
+  "isActive": true,
+  "isNewArrival": true,
+  "isOnSale": false,
+  "saleBadge": null,
+  
+  "metaData": {
+    "totalStock": 281,
+    "lowStockThreshold": 5,
+    "soldCount": 523,
+    "viewCount": 2847,
+    "wishlistCount": 145
+  },
+  
+  "createdBy": "admin-user-id",
+  "createdAt": "2025-09-01T08:00:00Z",
+  "updatedAt": "2025-11-10T12:30:00Z",
+  "__v": 0
+}

@@ -1,0 +1,385 @@
+{
+  "_id": "hoodie-example-001",
+  "name": "BYFXNS Oversized Hoodie",
+  "description": "Experience ultimate comfort with the BYFXNS Oversized Hoodie. Crafted from premium heavyweight cotton fleece, this hoodie features a relaxed, oversized fit perfect for layering or wearing solo. The signature embroidered logo on the chest and iconic graphics on the back make a bold statement. Ribbed cuffs and hem ensure a snug fit while maintaining the oversized aesthetic. Complete with a spacious kangaroo pocket and lined hood with drawstrings.",
+  "price": 650,
+  "compareAtPrice": 850,
+  "sku": "BF-HOODIE-OVR-001",
+  "barcode": "1234567890789",
+  "category": "clothing",
+  "subcategory": "hoodies",
+  "brand": "Babyfiction",
+  
+  "colorVariants": [
+    {
+      "colorName": "Ash Grey",
+      "colorCode": "#B8B8B8",
+      "sku": "BF-HOODIE-OVR-001-ASH",
+      "price": 650,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-detail-logo.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-lifestyle-1.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-lifestyle-2.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-hood-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/hoodie-ash-front.jpg",
+      "sizes": [
+        {
+          "size": "S",
+          "stock": 8,
+          "sku": "BF-HOODIE-OVR-001-ASH-S"
+        },
+        {
+          "size": "M",
+          "stock": 15,
+          "sku": "BF-HOODIE-OVR-001-ASH-M"
+        },
+        {
+          "size": "L",
+          "stock": 20,
+          "sku": "BF-HOODIE-OVR-001-ASH-L"
+        },
+        {
+          "size": "XL",
+          "stock": 18,
+          "sku": "BF-HOODIE-OVR-001-ASH-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 12,
+          "sku": "BF-HOODIE-OVR-001-ASH-2XL"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "Black",
+      "colorCode": "#000000",
+      "sku": "BF-HOODIE-OVR-001-BLK",
+      "price": 650,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-black-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-black-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-black-detail-logo.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-black-lifestyle-1.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-black-lifestyle-2.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-black-hood-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/hoodie-black-front.jpg",
+      "sizes": [
+        {
+          "size": "S",
+          "stock": 12,
+          "sku": "BF-HOODIE-OVR-001-BLK-S"
+        },
+        {
+          "size": "M",
+          "stock": 22,
+          "sku": "BF-HOODIE-OVR-001-BLK-M"
+        },
+        {
+          "size": "L",
+          "stock": 25,
+          "sku": "BF-HOODIE-OVR-001-BLK-L"
+        },
+        {
+          "size": "XL",
+          "stock": 20,
+          "sku": "BF-HOODIE-OVR-001-BLK-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 15,
+          "sku": "BF-HOODIE-OVR-001-BLK-2XL"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "Sand Beige",
+      "colorCode": "#D4C5B9",
+      "sku": "BF-HOODIE-OVR-001-SND",
+      "price": 650,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-detail-logo.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-lifestyle-1.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-lifestyle-2.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-hood-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/hoodie-sand-front.jpg",
+      "sizes": [
+        {
+          "size": "S",
+          "stock": 6,
+          "sku": "BF-HOODIE-OVR-001-SND-S"
+        },
+        {
+          "size": "M",
+          "stock": 10,
+          "sku": "BF-HOODIE-OVR-001-SND-M"
+        },
+        {
+          "size": "L",
+          "stock": 14,
+          "sku": "BF-HOODIE-OVR-001-SND-L"
+        },
+        {
+          "size": "XL",
+          "stock": 12,
+          "sku": "BF-HOODIE-OVR-001-SND-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 8,
+          "sku": "BF-HOODIE-OVR-001-SND-2XL"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "Forest Green",
+      "colorCode": "#228B22",
+      "sku": "BF-HOODIE-OVR-001-GRN",
+      "price": 650,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-green-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-green-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-green-detail-logo.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-green-lifestyle-1.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-green-lifestyle-2.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/hoodie-green-hood-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/hoodie-green-front.jpg",
+      "sizes": [
+        {
+          "size": "S",
+          "stock": 5,
+          "sku": "BF-HOODIE-OVR-001-GRN-S"
+        },
+        {
+          "size": "M",
+          "stock": 8,
+          "sku": "BF-HOODIE-OVR-001-GRN-M"
+        },
+        {
+          "size": "L",
+          "stock": 12,
+          "sku": "BF-HOODIE-OVR-001-GRN-L"
+        },
+        {
+          "size": "XL",
+          "stock": 10,
+          "sku": "BF-HOODIE-OVR-001-GRN-XL"
+        },
+        {
+          "size": "2XL",
+          "stock": 7,
+          "sku": "BF-HOODIE-OVR-001-GRN-2XL"
+        }
+      ],
+      "isAvailable": true
+    }
+  ],
+  
+  "material": "80% Cotton, 20% Polyester Heavyweight Fleece",
+  "weight": "400 GSM",
+  "careInstructions": [
+    "Machine wash cold inside out",
+    "Use mild detergent",
+    "Do not bleach",
+    "Tumble dry low or hang dry",
+    "Iron on low heat if needed (avoid print areas)",
+    "Do not dry clean"
+  ],
+  
+  "features": [
+    "Premium heavyweight fleece (400 GSM)",
+    "Oversized relaxed fit",
+    "Embroidered chest logo",
+    "Large back graphic print",
+    "Lined hood with flat drawstrings",
+    "Spacious kangaroo pocket",
+    "Ribbed cuffs and hem",
+    "Pre-shrunk for perfect fit",
+    "Drop shoulder design",
+    "Unisex styling"
+  ],
+  
+  "measurements": {
+    "S": {
+      "chest": "116 cm",
+      "length": "68 cm",
+      "sleeve": "62 cm",
+      "shoulder": "58 cm"
+    },
+    "M": {
+      "chest": "122 cm",
+      "length": "70 cm",
+      "sleeve": "64 cm",
+      "shoulder": "60 cm"
+    },
+    "L": {
+      "chest": "128 cm",
+      "length": "72 cm",
+      "sleeve": "66 cm",
+      "shoulder": "62 cm"
+    },
+    "XL": {
+      "chest": "134 cm",
+      "length": "74 cm",
+      "sleeve": "68 cm",
+      "shoulder": "64 cm"
+    },
+    "2XL": {
+      "chest": "140 cm",
+      "length": "76 cm",
+      "sleeve": "70 cm",
+      "shoulder": "66 cm"
+    }
+  },
+  
+  "fitGuide": {
+    "type": "Oversized",
+    "recommendation": "True to size for oversized fit. Size down for a more fitted look.",
+    "modelStats": {
+      "height": "180 cm",
+      "weight": "75 kg",
+      "wearing": "M",
+      "fit": "Oversized relaxed"
+    }
+  },
+  
+  "tags": [
+    "streetwear",
+    "hoodie",
+    "oversized",
+    "byfxns",
+    "heavyweight",
+    "winter",
+    "unisex",
+    "trending",
+    "fleece",
+    "comfortable"
+  ],
+  
+  "seo": {
+    "title": "BYFXNS Oversized Hoodie - Premium Heavyweight Fleece | BabyFictions",
+    "description": "Shop the BYFXNS Oversized Hoodie in Ash Grey, Black, Sand Beige, and Forest Green. Premium 400 GSM fleece, embroidered logo, relaxed fit. Free shipping over R500.",
+    "keywords": [
+      "byfxns hoodie",
+      "oversized hoodie",
+      "streetwear hoodie",
+      "heavyweight fleece",
+      "premium hoodie",
+      "south african streetwear",
+      "babyfictions hoodie",
+      "winter clothing"
+    ]
+  },
+  
+  "shipping": {
+    "weight": 0.65,
+    "dimensions": {
+      "length": 35,
+      "width": 30,
+      "height": 8
+    },
+    "estimatedDelivery": "2-5 business days",
+    "freeShippingEligible": true
+  },
+  
+  "rating": {
+    "average": 4.9,
+    "count": 234,
+    "breakdown": {
+      "5": 198,
+      "4": 28,
+      "3": 6,
+      "2": 1,
+      "1": 1
+    }
+  },
+  
+  "reviews": [
+    {
+      "userId": "user-id-10",
+      "userName": "Lerato M.",
+      "rating": 5,
+      "title": "Best hoodie I've ever owned!",
+      "comment": "The quality is insane! Super thick and warm without being too heavy. The oversized fit is perfect and the embroidery is top notch. Worth every cent!",
+      "verified": true,
+      "helpful": 45,
+      "createdAt": "2025-10-05T15:20:00Z",
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/reviews/hoodie-review-1.jpg"
+      ]
+    },
+    {
+      "userId": "user-id-11",
+      "userName": "Sipho N.",
+      "rating": 5,
+      "title": "Premium quality, worth the price",
+      "comment": "Got the black one and it's amazing. The fleece is thick and soft, perfect for winter. The oversized fit is exactly what I wanted. Highly recommend!",
+      "verified": true,
+      "helpful": 38,
+      "createdAt": "2025-10-12T11:45:00Z",
+      "images": []
+    },
+    {
+      "userId": "user-id-12",
+      "userName": "Nomsa K.",
+      "rating": 5,
+      "title": "Love the sand beige color!",
+      "comment": "The color is beautiful in person and the quality exceeded my expectations. It's oversized but not too baggy. Very comfortable and warm.",
+      "verified": true,
+      "helpful": 29,
+      "createdAt": "2025-10-18T09:30:00Z",
+      "images": []
+    }
+  ],
+  
+  "relatedProducts": [
+    "tshirt-001",
+    "sweatpants-001",
+    "cap-001"
+  ],
+  
+  "collections": [
+    "new-arrivals",
+    "bestsellers",
+    "winter-collection",
+    "premium-line"
+  ],
+  
+  "isFeatured": true,
+  "isActive": true,
+  "isNewArrival": true,
+  "isOnSale": true,
+  "saleBadge": "Limited Time",
+  
+  "saleInfo": {
+    "discountPercentage": 23,
+    "startsAt": "2025-11-01T00:00:00Z",
+    "endsAt": "2025-11-30T23:59:59Z",
+    "reason": "Black Friday Extended Sale"
+  },
+  
+  "metaData": {
+    "totalStock": 292,
+    "lowStockThreshold": 10,
+    "soldCount": 812,
+    "viewCount": 5234,
+    "wishlistCount": 456,
+    "averageOrderValue": 1250,
+    "returnRate": 2.1
+  },
+  
+  "createdBy": "admin-user-id",
+  "createdAt": "2025-09-20T12:00:00Z",
+  "updatedAt": "2025-11-10T14:15:00Z",
+  "__v": 0
+}

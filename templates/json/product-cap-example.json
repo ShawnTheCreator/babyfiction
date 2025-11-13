@@ -1,0 +1,205 @@
+{
+  "_id": "cap-example-001",
+  "name": "5 PANEL CAP",
+  "description": "The BYFXNS MMXXI Five-Panel Cap delivers a bold streetwear statement in a single, striking piece. Crafted from a lightweight cotton-blend for breathability and durability, it features crisp embroidery of the signature BYFXNS logo and Roman numerals 'MMXXI,' honoring the brand's 2021 origin. Side eyelets add ventilation, while an adjustable back strap ensures a comfortable, custom fit—making this vibrant cap the perfect finishing touch for any urban streetwear look.",
+  "price": 200,
+  "compareAtPrice": null,
+  "sku": "BF-HATS-5PANEL-001",
+  "barcode": "1234567890456",
+  "category": "clothing",
+  "subcategory": "hats",
+  "brand": "Babyfiction",
+  
+  "colorVariants": [
+    {
+      "colorName": "Red",
+      "colorCode": "#DC2626",
+      "sku": "BF-HATS-RED-001",
+      "price": 200,
+      "images": [
+        "https://res.cloudinary.com/dybgvulcj/image/upload/v1761060885/babyfictions/products/dcczpydmioy19bhsbdqe.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-red-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-red-side.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-red-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/dybgvulcj/image/upload/v1761060885/babyfictions/products/dcczpydmioy19bhsbdqe.jpg",
+      "sizes": [
+        {
+          "size": "One Size",
+          "stock": 1,
+          "sku": "BF-HATS-RED-001-OS",
+          "adjustable": true,
+          "fitRange": "54-60 cm"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "Black",
+      "colorCode": "#000000",
+      "sku": "BF-HATS-BLK-001",
+      "price": 200,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/cap-black-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-black-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-black-side.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-black-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/cap-black-front.jpg",
+      "sizes": [
+        {
+          "size": "One Size",
+          "stock": 25,
+          "sku": "BF-HATS-BLK-001-OS",
+          "adjustable": true,
+          "fitRange": "54-60 cm"
+        }
+      ],
+      "isAvailable": true
+    },
+    {
+      "colorName": "Navy Blue",
+      "colorCode": "#1E3A8A",
+      "sku": "BF-HATS-NVY-001",
+      "price": 200,
+      "images": [
+        "https://res.cloudinary.com/example/image/upload/products/cap-navy-front.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-navy-back.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-navy-side.jpg",
+        "https://res.cloudinary.com/example/image/upload/products/cap-navy-detail.jpg"
+      ],
+      "thumbnail": "https://res.cloudinary.com/example/image/upload/products/cap-navy-front.jpg",
+      "sizes": [
+        {
+          "size": "One Size",
+          "stock": 18,
+          "sku": "BF-HATS-NVY-001-OS",
+          "adjustable": true,
+          "fitRange": "54-60 cm"
+        }
+      ],
+      "isAvailable": true
+    }
+  ],
+  
+  "material": "80% Cotton, 20% Polyester Blend",
+  "weight": "120 GSM",
+  "careInstructions": [
+    "Spot clean only",
+    "Hand wash in cold water if necessary",
+    "Air dry flat",
+    "Do not iron embroidery",
+    "Do not bleach"
+  ],
+  
+  "features": [
+    "Classic 5-panel construction",
+    "Embroidered BYFXNS logo",
+    "MMXXI Roman numerals detail",
+    "Side eyelets for ventilation",
+    "Adjustable back strap",
+    "Lightweight cotton blend",
+    "Unisex design",
+    "Pre-curved brim"
+  ],
+  
+  "measurements": {
+    "One Size": {
+      "circumference": "54-60 cm (adjustable)",
+      "brimLength": "7 cm",
+      "depth": "11 cm"
+    }
+  },
+  
+  "tags": [
+    "streetwear",
+    "cap",
+    "5-panel",
+    "byfxns",
+    "hat",
+    "adjustable",
+    "unisex",
+    "accessories"
+  ],
+  
+  "seo": {
+    "title": "BYFXNS MMXXI 5 Panel Cap - Adjustable Streetwear Hat | BabyFictions",
+    "description": "Shop the BYFXNS MMXXI 5 Panel Cap. Premium cotton blend, embroidered logo, adjustable fit. Available in Red, Black, and Navy. Free shipping over R500.",
+    "keywords": [
+      "byfxns cap",
+      "5 panel cap",
+      "streetwear hat",
+      "adjustable cap",
+      "south african streetwear",
+      "babyfictions accessories"
+    ]
+  },
+  
+  "shipping": {
+    "weight": 0.15,
+    "dimensions": {
+      "length": 25,
+      "width": 20,
+      "height": 10
+    },
+    "estimatedDelivery": "2-5 business days",
+    "freeShippingEligible": true
+  },
+  
+  "rating": {
+    "average": 4.8,
+    "count": 89,
+    "breakdown": {
+      "5": 68,
+      "4": 18,
+      "3": 2,
+      "2": 1,
+      "1": 0
+    }
+  },
+  
+  "reviews": [
+    {
+      "userId": "user-id-5",
+      "userName": "Thabo K.",
+      "rating": 5,
+      "title": "Perfect fit and quality!",
+      "comment": "The cap fits perfectly and the embroidery is clean. Love the adjustable strap. Definitely worth the price!",
+      "verified": true,
+      "helpful": 12,
+      "createdAt": "2025-10-28T09:15:00Z",
+      "images": []
+    }
+  ],
+  
+  "relatedProducts": [
+    "tshirt-001",
+    "hoodie-001",
+    "cap-002"
+  ],
+  
+  "collections": [
+    "new-arrivals",
+    "accessories",
+    "bestsellers"
+  ],
+  
+  "isFeatured": true,
+  "isActive": true,
+  "isNewArrival": false,
+  "isOnSale": false,
+  "saleBadge": null,
+  
+  "metaData": {
+    "totalStock": 44,
+    "lowStockThreshold": 5,
+    "soldCount": 267,
+    "viewCount": 1523,
+    "wishlistCount": 78
+  },
+  
+  "createdBy": "admin-user-id",
+  "createdAt": "2025-08-15T10:00:00Z",
+  "updatedAt": "2025-11-10T12:30:00Z",
+  "__v": 0
+}
