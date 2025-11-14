@@ -58,9 +58,9 @@ export function buildSignature(fields, passphrase) {
 }
 
 export function verifySignature(payload = {}, passphrase = '') {
-  // Rebuild signature from posted payload:
+  // Rebuild signature from payload:
   // - Exclude 'signature'
-  // - Only include non-empty values
+  // - Include only non-empty values
   // - Sort keys ascending
   // - URL-encode values (uppercase percent, spaces as '+')
   // - Append passphrase last
@@ -76,11 +76,9 @@ export function verifySignature(payload = {}, passphrase = '') {
     const encoded = encodeURIComponent(String(data[key]).trim()).replace(/%20/g, '+');
     pfOutput += `${key}=${encoded}&`;
   }
-
   if (pfOutput.endsWith('&')) {
     pfOutput = pfOutput.slice(0, -1);
   }
-
   if (passphrase && String(passphrase).trim() !== '') {
     const encodedPass = encodeURIComponent(String(passphrase).trim()).replace(/%20/g, '+');
     pfOutput += `&passphrase=${encodedPass}`;
