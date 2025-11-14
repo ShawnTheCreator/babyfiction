@@ -136,7 +136,6 @@ function CheckoutInner() {
       document.body.appendChild(form);
       form.submit();
     } catch (err: any) {
-      // Fallback: show error
       toast({ title: 'Payment failed', description: err?.message || 'Please try again.' });
     } finally {
       setProcessing(false);

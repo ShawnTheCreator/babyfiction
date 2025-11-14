@@ -22,6 +22,7 @@ import wishlistRoutes from './routes/wishlist.js';
 import usersRoutes from './routes/users.js';
 import adminRoutes from './routes/admin.js';
 import chatbotRoutes from './routes/chatbot.js';
+import payfastRoutes from './routes/payfast.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -38,7 +39,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://babyfiction.vercel.app',
   'https://www.babyfiction.vercel.app',
-  'https://babyfictions.netlify.app'
+  'https://babyfictions.netlify.app',
+  'https://babyfiction.onrender.com'
 ];
 
 app.use(cors({
@@ -119,6 +121,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/payfast', payfastRoutes);
 
 // Error handling middleware
 app.use(notFound);
