@@ -62,11 +62,10 @@ function CheckoutInner() {
 
   // Track checkout start when landing on this page
   useEffect(() => {
-    // parse price string like "$19.99" to number
     const num = typeof price === 'string' ? parseFloat(price.replace(/[^\d.]/g, '')) : NaN;
     const amount = isNaN(num) ? undefined : num;
     track({ type: 'checkout_start', amount });
-  }, [id]);
+  }, [id, price]);
 
   // Load authenticated user's cart (server cart)
   useEffect(() => {
@@ -116,16 +115,19 @@ function CheckoutInner() {
       });
       const data = res?.data || res;
 
-      if (!data?.success || !data?.url || !data?.fields) {
-        throw new Error('Failed to initiate PayFast');
+      const processUrl = data?.processUrl || data?.url || 'https://sandbox.payfast.co.za/eng/process';
+      const fields = data?.fields;
+
+      if (!fields || Object.keys(fields).length === 0) {
+        throw new Error(data?.message || 'Failed to initiate PayFast');
       }
 
-      // Build and submit a form to PayFast
+      // Build and submit a form to PayFast (expects POST form data)
       const form = document.createElement('form');
       form.method = 'POST';
-      form.action = data.url;
+      form.action = processUrl;
 
-      Object.entries(data.fields).forEach(([key, value]) => {
+      Object.entries(fields).forEach(([key, value]) => {
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = key;
@@ -136,7 +138,13 @@ function CheckoutInner() {
       document.body.appendChild(form);
       form.submit();
     } catch (err: any) {
-      toast({ title: 'Payment failed', description: err?.message || 'Please try again.' });
+      toast({
+        title: 'Payment failed',
+        description:
+          err?.message === 'Cart is empty or invalid.'
+            ? 'Your cart is empty. Please add items before paying.'
+            : err?.message || 'Please try again.',
+      });
     } finally {
       setProcessing(false);
     }
@@ -290,41 +298,6 @@ function CheckoutInner() {
       </div>
     </main>
   );
-}
-
-function CheckoutPage() {
-  setProcessing(true);
-  try {
-    const res: any = await fetchJson('/api/payfast/initiate', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    });
-    const data = res?.data || res;
-
-    if (!data?.success || !data?.url || !data?.fields) {
-      throw new Error('Failed to initiate PayFast');
-    }
-
-    // Build and submit a form to PayFast
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = data.url;
-
-    Object.entries(data.fields).forEach(([key, value]) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = String(value ?? '');
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
-  } catch (err: any) {
-    toast({ title: 'Payment failed', description: err?.message || 'Please try again.' });
-  } finally {
-    setProcessing(false);
-  }
 }
 
 export default function CheckoutPage() {
