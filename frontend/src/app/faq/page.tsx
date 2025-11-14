@@ -21,12 +21,12 @@ const faqCategories: FAQCategory[] = [
       {
         question: "How do I know which size to order?",
         answer:
-          'We include detailed size guides on each product page. You can also check our "Size Chart" page for conversions between SA, UK, and US sizes.',
+          'On each product page, under the "Size & Fit" section, we provide a link to our comprehensive size chart. This guide will help you accurately gauge the product\'s dimensions and find your perfect fit.',
       },
       {
         question: "What if my size is out of stock?",
         answer:
-          "You can sign up to be notified when your size is restocked or contact us directly to check if we're expecting new stock soon.",
+          "You can add the item to your wishlist to keep track of its availability. Alternatively, please contact us directly to inquire about expected restock dates and upcoming inventory.",
       },
       {
         question: "Are your products locally made?",
@@ -68,22 +68,22 @@ const faqCategories: FAQCategory[] = [
       {
         question: "Do you deliver nationwide?",
         answer:
-          "No. At this time, we do not offer nationwide delivery. We currently operate exclusively within the Midrand, Johannesburg area, using our trusted courier partners to ensure safe and reliable delivery. As we grow, we plan to expand our delivery coverage.",
+          "Yes, we deliver nationwide throughout South Africa using our trusted courier service, Internet Express. We are committed to ensuring your order reaches you safely and efficiently, regardless of your location.",
       },
       {
         question: "How long does delivery take?",
         answer:
-          "Our standard delivery timeframe ranges from 3 to 5 working days, depending on your exact location within the Midrand area and courier availability. You will receive delivery updates once your order has been dispatched.",
+          "Our standard delivery timeframe ranges from 3 to 5 working days, depending on your location within South Africa and courier availability. Please note that delays may occasionally occur due to unforeseen circumstances such as weather conditions, public holidays, or courier operational challenges. You will receive delivery updates once your order has been dispatched.",
       },
       {
         question: "How much does shipping cost?",
         answer:
-          "We offer free shipping for orders over R500, and a flat rate of R75 for smaller orders.",
+          "We offer free shipping for orders over R1,300. For orders below this threshold, our standard shipping rate is R130 to metropolitan areas, with an additional R20 for suburban locations and an extra R10 for rural areas.",
       },
       {
         question: "Can I track my order?",
         answer:
-          "Yes, once your order ships, you'll receive a tracking number via email or SMS.",
+          "Yes, you can track your order progress throughout the delivery process. Once your order has been handed over to our courier service, Internet Express, a tracking link will be sent to you via email or SMS, allowing you to monitor your shipment in real-time.",
       },
     ],
   },
@@ -94,17 +94,17 @@ const faqCategories: FAQCategory[] = [
       {
         question: "What is your return policy?",
         answer:
-          "You can return unworn, unused items within 7–14 days of delivery for an exchange or refund.",
+          "At this moment, we do not offer any returns, exchanges, or refunds on any products purchased through our store. We encourage customers to carefully review product descriptions, sizing information, and images before completing their purchase.",
       },
       {
-        question: "How do I request a return or exchange?",
+        question: "Can I exchange an item if I ordered the wrong size?",
         answer:
-          'Visit our "Returns" page or email us with your order number and reason for return.',
+          "Unfortunately, we do not currently offer exchanges. Please make sure to check our size guides and product details carefully before placing your order. If you have questions about sizing, feel free to contact us before purchasing.",
       },
       {
-        question: "Do I have to pay for return shipping?",
+        question: "What if my order arrives damaged or incorrect?",
         answer:
-          "Return shipping is free for defective or incorrect items, but for size exchanges, the customer may be responsible for courier costs.",
+          "If your order arrives damaged or you receive an incorrect item, please contact us immediately at babyfictions2021@gmail.com within 48 hours of delivery with photos of the issue. We will work with you to resolve the problem as quickly as possible.",
       },
     ],
   },
@@ -115,17 +115,12 @@ const faqCategories: FAQCategory[] = [
       {
         question: "Do I need to create an account to shop?",
         answer:
-          "No, you can check out as a guest — but creating an account allows you to track orders and view your purchase history.",
+          "Yes, for logistics and security reasons, we require all customers to create an account before making a purchase. This ensures secure order processing, accurate delivery tracking, and proper management of your purchase history.",
       },
       {
         question: "How can I contact customer support?",
         answer:
-          'You can reach us via email at support@babyfictions.co.za, WhatsApp, or through our "Contact Us" page.',
-      },
-      {
-        question: "My order arrived damaged / incorrect — what should I do?",
-        answer:
-          "Please contact us within 48 hours with photos of the issue, and we'll resolve it promptly.",
+          'You can reach us via email at babyfictions2021@gmail.com, WhatsApp at +27 84 848 8516, call us at +27 72 096 3819, or through our "Contact Us" page.',
       },
     ],
   },
@@ -156,7 +151,7 @@ const faqCategories: FAQCategory[] = [
       {
         question: "Do you ship internationally?",
         answer:
-          "No. We do not offer international shipping at this time. Our services are limited to the Midrand area in Johannesburg.",
+          "No, we do not offer international shipping at this time. Our delivery services are available nationwide throughout South Africa only. We use our trusted courier partner, Internet Express, to ensure reliable delivery to all locations within the country.",
       },
       {
         question: "How can I collaborate or become a brand ambassador?",
