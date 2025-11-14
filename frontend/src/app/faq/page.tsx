@@ -20,21 +20,25 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "How do I know which size to order?",
-        answer: "We include detailed size guides on each product page. You can also check our \"Size Chart\" page for conversions between SA, UK, and US sizes."
+        answer:
+          'We include detailed size guides on each product page. You can also check our "Size Chart" page for conversions between SA, UK, and US sizes.',
       },
       {
         question: "What if my size is out of stock?",
-        answer: "You can sign up to be notified when your size is restocked or contact us directly to check if we're expecting new stock soon."
+        answer:
+          "You can sign up to be notified when your size is restocked or contact us directly to check if we're expecting new stock soon.",
       },
       {
         question: "Are your products locally made?",
-        answer: "Yes, some of our items are designed and manufactured locally in South Africa. We're proud to support local craftsmanship while delivering quality streetwear."
+        answer:
+          "Yes, some of our items are designed and manufactured locally in South Africa. We're proud to support local craftsmanship while delivering quality streetwear.",
       },
       {
         question: "Are the colours in the photos accurate?",
-        answer: "We try to represent our products as accurately as possible, but colours may vary slightly due to screen settings and lighting."
-      }
-    ]
+        answer:
+          "We try to represent our products as accurately as possible, but colours may vary slightly due to screen settings and lighting.",
+      },
+    ],
   },
   {
     title: "Orders & Payment",
@@ -42,17 +46,20 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "What payment methods do you accept?",
-        answer: "We accept debit/credit cards, instant EFT, SnapScan, PayFast, and PayJustNow (for split payments)."
+        answer:
+          "We currently accept a variety of secure payment methods, including debit and credit cards, Instant EFT, Google Pay, Apple Pay, Capitec Pay, and PayFast. All payments are processed through trusted and encrypted gateways to ensure the safety and privacy of your financial information.",
       },
       {
         question: "Can I pay on delivery (COD)?",
-        answer: "We currently do not offer cash on delivery for security reasons."
+        answer:
+          "We currently do not offer cash on delivery for security reasons.",
       },
       {
         question: "I didn't receive an order confirmation — what do I do?",
-        answer: "Please check your spam/junk folder. If it's not there, contact our support team with your name and order details."
-      }
-    ]
+        answer:
+          "Please check your spam/junk folder. If it's not there, contact our support team with your name and order details.",
+      },
+    ],
   },
   {
     title: "Shipping & Delivery",
@@ -60,21 +67,25 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "Do you deliver nationwide?",
-        answer: "Yes! We deliver anywhere in South Africa using trusted couriers."
+        answer:
+          "No. At this time, we do not offer nationwide delivery. We currently operate exclusively within the Midrand, Johannesburg area, using our trusted courier partners to ensure safe and reliable delivery. As we grow, we plan to expand our delivery coverage.",
       },
       {
         question: "How long does delivery take?",
-        answer: "Standard delivery takes 2–5 business days for major cities and 5–7 days for outlying areas."
+        answer:
+          "Our standard delivery timeframe ranges from 3 to 5 working days, depending on your exact location within the Midrand area and courier availability. You will receive delivery updates once your order has been dispatched.",
       },
       {
         question: "How much does shipping cost?",
-        answer: "We offer free shipping for orders over R500, and a flat rate of R75 for smaller orders."
+        answer:
+          "We offer free shipping for orders over R500, and a flat rate of R75 for smaller orders.",
       },
       {
         question: "Can I track my order?",
-        answer: "Yes, once your order ships, you'll receive a tracking number via email or SMS."
-      }
-    ]
+        answer:
+          "Yes, once your order ships, you'll receive a tracking number via email or SMS.",
+      },
+    ],
   },
   {
     title: "Returns & Exchanges",
@@ -82,17 +93,20 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "What is your return policy?",
-        answer: "You can return unworn, unused items within 7–14 days of delivery for an exchange or refund."
+        answer:
+          "You can return unworn, unused items within 7–14 days of delivery for an exchange or refund.",
       },
       {
         question: "How do I request a return or exchange?",
-        answer: "Visit our \"Returns\" page or email us with your order number and reason for return."
+        answer:
+          'Visit our "Returns" page or email us with your order number and reason for return.',
       },
       {
         question: "Do I have to pay for return shipping?",
-        answer: "Return shipping is free for defective or incorrect items, but for size exchanges, the customer may be responsible for courier costs."
-      }
-    ]
+        answer:
+          "Return shipping is free for defective or incorrect items, but for size exchanges, the customer may be responsible for courier costs.",
+      },
+    ],
   },
   {
     title: "Account & Support",
@@ -100,17 +114,20 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "Do I need to create an account to shop?",
-        answer: "No, you can check out as a guest — but creating an account allows you to track orders and view your purchase history."
+        answer:
+          "No, you can check out as a guest — but creating an account allows you to track orders and view your purchase history.",
       },
       {
         question: "How can I contact customer support?",
-        answer: "You can reach us via email at support@babyfictions.co.za, WhatsApp, or through our \"Contact Us\" page."
+        answer:
+          'You can reach us via email at support@babyfictions.co.za, WhatsApp, or through our "Contact Us" page.',
       },
       {
         question: "My order arrived damaged / incorrect — what should I do?",
-        answer: "Please contact us within 48 hours with photos of the issue, and we'll resolve it promptly."
-      }
-    ]
+        answer:
+          "Please contact us within 48 hours with photos of the issue, and we'll resolve it promptly.",
+      },
+    ],
   },
   {
     title: "Promotions & Loyalty",
@@ -118,13 +135,15 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "Do you offer discounts or sales?",
-        answer: "Yes, we run seasonal promotions. Sign up for our newsletter or follow us on social media to stay updated."
+        answer:
+          "We may run occasional promotional campaigns or limited-time offers. For the latest updates, we recommend subscribing to our newsletter or following our official social media pages.",
       },
       {
         question: "Do you have a loyalty or referral program?",
-        answer: "Yes, members can earn points or rewards for every purchase and referral. Join our loyalty program to start earning today."
-      }
-    ]
+        answer:
+          "Not yet. We are currently exploring options for a customer loyalty or referral program, and updates will be provided once the system is finalized.",
+      },
+    ],
   },
   {
     title: "General Brand",
@@ -132,18 +151,20 @@ const faqCategories: FAQCategory[] = [
     faqs: [
       {
         question: "Where is your business based?",
-        answer: "We're proudly based in South Africa — Johannesburg, Gauteng."
+        answer: "We currently operate fully online and do not have a physical storefront. Our operations, order processing, and logistics are all managed from Midrand, Johannesburg, where our team is based.",
       },
       {
         question: "Do you ship internationally?",
-        answer: "Currently, we only ship within South Africa, but we plan to expand soon."
+        answer:
+          "No. We do not offer international shipping at this time. Our services are limited to the Midrand area in Johannesburg.",
       },
       {
         question: "How can I collaborate or become a brand ambassador?",
-        answer: "Send us a message through our \"Contact\" page or email collab@babyfictions.co.za."
-      }
-    ]
-  }
+        answer:
+          'At the moment, we are not actively recruiting collaborators or brand ambassadors. However, you may still reach out to us for future consideration by contacting us via our Contact page. Please note that collab@babyfictions.co.za is not an active email address, and all correspondence should be directed through our primary contact form.',
+      },
+    ],
+  },
 ];
 
 export default function FAQsPage() {
