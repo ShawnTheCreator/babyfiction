@@ -226,6 +226,10 @@ function AccountDashboard() {
     }
   };
 
+  // ZAR currency formatter
+  const formatZAR = (n: number) =>
+    new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n || 0);
+
   // Loading skeleton for profile
   const ProfileSkeleton = () => (
     <div className="space-y-4">
@@ -514,7 +518,7 @@ function AccountDashboard() {
                             {getOrderStatusBadge(order.status)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${order.total?.toFixed(2) || '0.00'}
+                            {formatZAR(order.total ?? 0)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <Button 
@@ -621,10 +625,10 @@ function AccountDashboard() {
                         </h3>
                         <div className="mt-1 flex items-center justify-between">
                           <p className="text-sm font-medium text-gray-900">
-                            ${item.product.price?.toFixed(2) || '0.00'}
+                            {formatZAR(item.product.price ?? 0)}
                             {item.product.isOnSale && item.product.originalPrice && (
                               <span className="ml-2 text-xs text-gray-500 line-through">
-                                ${item.product.originalPrice.toFixed(2)}
+                                {formatZAR(item.product.originalPrice ?? 0)}
                               </span>
                             )}
                           </p>
@@ -741,7 +745,7 @@ function AccountDashboard() {
                               </div>
                               <div className="ml-4">
                                 <p className="text-sm font-medium text-gray-900">
-                                  ${(item.product?.price * item.quantity)?.toFixed(2) || '0.00'}
+                                  {formatZAR((item.product?.price || 0) * (item.quantity || 0))}
                                 </p>
                               </div>
                             </div>
@@ -760,8 +764,8 @@ function AccountDashboard() {
                               {order.items.reduce((sum, item) => sum + item.quantity, 0)} items
                             </p>
                             <p className="mt-1 text-sm font-medium text-gray-900">
-                              Total: ${order.total?.toFixed(2) || '0.00'}
-                            </p>
+                                Total: {formatZAR(order.total ?? 0)}
+                              </p>
                           </div>
                           <div className="mt-4 sm:mt-0 space-x-3">
                             <Button 
@@ -924,10 +928,10 @@ function AccountDashboard() {
                         </h3>
                         <div className="mt-1 flex items-center justify-between">
                           <p className="text-sm font-medium text-gray-900">
-                            ${item.product.price?.toFixed(2) || '0.00'}
+                            {formatZAR(item.product.price ?? 0)}
                             {item.product.isOnSale && item.product.originalPrice && (
                               <span className="ml-2 text-xs text-gray-500 line-through">
-                                ${item.product.originalPrice.toFixed(2)}
+                                {formatZAR(item.product.originalPrice ?? 0)}
                               </span>
                             )}
                           </p>
