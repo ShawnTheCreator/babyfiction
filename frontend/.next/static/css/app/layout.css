@@ -5005,6 +5005,10 @@ All colors MUST be HSL.
     font-size: 28px;
   }
 
+  .sm\:text-\[32px\] {
+    font-size: 32px;
+  }
+
   .sm\:text-\[36px\] {
     font-size: 36px;
   }

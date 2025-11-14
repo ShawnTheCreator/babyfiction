@@ -1,12 +1,12 @@
-import { getProcessUrl, buildSignature, verifySignature } from '../services/payfast.js';
+// module imports and initiatePayFast
 import Cart from '../models/Cart.js';
+import { getPayFastProcessUrl, buildSignature, verifySignature } from '../services/payfast.js';
 
 export async function initiatePayFast(req, res, next) {
   try {
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.product', 'name price thumbnail');
     const items = Array.isArray(cart?.items) ? cart.items : [];
 
-    // Compute totals (same logic as checkout)
     const TAX_RATE = 0.15;
     let subtotal = 0;
     for (const it of items) {
@@ -22,45 +22,59 @@ export async function initiatePayFast(req, res, next) {
       return res.status(400).json({ success: false, message: 'Cart is empty or invalid.' });
     }
 
-    const merchant_id = String(process.env.PAYFAST_MERCHANT_ID || '').trim();
-    const merchant_key = String(process.env.PAYFAST_MERCHANT_KEY || '').trim();
-    const passphrase = String(process.env.PAYFAST_PASSPHRASE || '');
+    const {
+      PAYFAST_MERCHANT_ID,
+      PAYFAST_MERCHANT_KEY,
+      PAYFAST_PASSPHRASE,
+      PAYFAST_RETURN_URL,
+      PAYFAST_CANCEL_URL,
+      PAYFAST_NOTIFY_URL,
+    } = process.env;
+
+    const merchant_id = String(PAYFAST_MERCHANT_ID || '').trim();
+    const merchant_key = String(PAYFAST_MERCHANT_KEY || '').trim();
 
     if (!merchant_id || !merchant_key) {
       return res.status(500).json({ success: false, message: 'PayFast merchant credentials not configured' });
     }
 
+    const amount = (Number(total) || 0).toFixed(2);
+    const payer = req.user || {};
+    const name_first = payer.firstName || 'Customer';
+    const name_last = payer.lastName || 'Guest';
+    const email_address = payer.email || 'test@payfast.co.za';
     const m_payment_id = `BF-${req.user._id}-${Date.now()}`;
     const item_name = items.length > 1 ? `${items.length} items` : (items[0]?.product?.name || 'Order');
-    const email_address = req.user.email;
-    const name_first = req.user.firstName || 'Customer';
-    const name_last = req.user.lastName || 'BF';
-
-    const return_url = process.env.PAYFAST_RETURN_URL;
-    const cancel_url = process.env.PAYFAST_CANCEL_URL;
-    const notify_url = process.env.PAYFAST_NOTIFY_URL;
+    const item_description = `Cart checkout`;
 
     const fields = {
       merchant_id,
       merchant_key,
-      return_url,
-      cancel_url,
-      notify_url,
-      m_payment_id,
-      amount: total.toFixed(2),
-      item_name,
-      email_address,
+      return_url: PAYFAST_RETURN_URL,
+      cancel_url: PAYFAST_CANCEL_URL,
+      notify_url: PAYFAST_NOTIFY_URL,
       name_first,
       name_last,
+      email_address,
+      m_payment_id,
+      amount,
+      item_name,
+      item_description,
     };
 
-    const signature = buildSignature(fields, passphrase);
-    fields.signature = signature;
+    Object.keys(fields).forEach((k) => {
+      const v = fields[k];
+      if (v === undefined || v === null || String(v).trim() === '') {
+        delete fields[k];
+      }
+    });
 
-    res.json({
-      success: true,
-      url: getProcessUrl(),
-      fields,
+    const signature = buildSignature(fields, PAYFAST_PASSPHRASE);
+    const processUrl = getPayFastProcessUrl();
+
+    return res.json({
+      processUrl,
+      fields: { ...fields, signature },
     });
   } catch (err) {
     next(err);
