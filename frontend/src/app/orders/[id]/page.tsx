@@ -20,6 +20,9 @@ function OrderDetailInner() {
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<any>(null);
 
+  const formatZAR = (n: number) =>
+    new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n || 0);
+
   useEffect(() => {
     if (!id) return;
     let active = true;
@@ -52,10 +55,10 @@ function OrderDetailInner() {
           <div className="font-medium mb-2">Summary</div>
           <div className="text-sm text-muted-foreground">Status: {order.status}</div>
           <div className="text-sm text-muted-foreground">Items: {order.totalItems}</div>
-          <div className="text-sm text-muted-foreground">Subtotal: {order?.pricing?.subtotal}</div>
-          <div className="text-sm text-muted-foreground">Tax: {order?.pricing?.tax}</div>
-          <div className="text-sm text-muted-foreground">Shipping: {order?.pricing?.shipping}</div>
-          <div className="text-sm text-muted-foreground">Total: {order?.pricing?.total}</div>
+          <div className="text-sm text-muted-foreground">Subtotal: {formatZAR(order?.pricing?.subtotal || 0)}</div>
+          <div className="text-sm text-muted-foreground">Tax: {formatZAR(order?.pricing?.tax || 0)}</div>
+          <div className="text-sm text-muted-foreground">Shipping: {formatZAR(order?.pricing?.shipping || 0)}</div>
+          <div className="text-sm text-muted-foreground">Total: {formatZAR(order?.pricing?.total || 0)}</div>
           <div className="mt-3"><Link href={`/orders/${order._id}/tracking`} className="underline">View tracking</Link></div>
         </div>
         <div className="rounded border p-4">
