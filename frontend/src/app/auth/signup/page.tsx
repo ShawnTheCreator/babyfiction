@@ -49,7 +49,8 @@ function SignupInner() {
         method: 'POST',
         body: JSON.stringify({ firstName, lastName, email, password }),
       });
-      router.push('/auth/login');
+      // Route to PIN verification step
+      router.push(`/auth/verify?mode=signup&email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err?.message || 'Signup failed');
     } finally {

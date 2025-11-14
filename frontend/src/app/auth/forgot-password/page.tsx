@@ -9,15 +9,26 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!email) {
+      setError('Email is required');
+      return;
+    }
+    if (!recaptchaToken) {
+      setError('Please complete reCAPTCHA');
+      return;
+    }
+
     setLoading(true);
     try {
       await fetchJson('/api/auth/forgot-password', {
         method: 'POST',
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, recaptchaToken }),
       });
       setSuccess(true);
     } catch (err: any) {
@@ -72,6 +83,22 @@ export default function ForgotPasswordPage() {
                 />
               </div>
 
+              {/* Google reCAPTCHA v2 */}
+              <div className="mt-2">
+                {require('react-google-recaptcha') && (
+                  (() => {
+                    const ReCAPTCHA = require('react-google-recaptcha').default;
+                    return (
+                      <ReCAPTCHA
+                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+                        onChange={(token: string | null) => setRecaptchaToken(token || '')}
+                        theme="dark"
+                      />
+                    );
+                  })()
+                )}
+              </div>
+
               {error && (
                 <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
                   {error}
@@ -80,10 +107,10 @@ export default function ForgotPasswordPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !email || !recaptchaToken}
                 className="w-full rounded-lg bg-white text-black py-2.5 font-medium shadow hover:bg-zinc-100 disabled:opacity-50"
               >
-                {loading ? 'Sending...' : 'Send Reset Link'}
+                {loading ? 'Sending…' : 'Send reset email'}
               </button>
             </form>
           )}

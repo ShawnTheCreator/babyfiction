@@ -1,3 +1,4 @@
+// Router setup
 import { Router } from 'express';
 import {
   register,
@@ -13,20 +14,25 @@ import {
   validateLogin,
   validateChangePassword,
   validateForgotPassword,
-  validateResetPassword
+  validateResetPassword,
+  verifyOtp
 } from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 import { authLimiter, passwordResetLimiter } from '../middleware/rateLimiter.js';
 import { validate } from '../middleware/validation.js';
+import { recaptchaV2Middleware } from '../middleware/recaptcha.js';
 
 const router = Router();
 
 // Public routes
-router.post('/register', authLimiter, validate(validateRegister), register);
-router.post('/login', authLimiter, validate(validateLogin), login);
-router.post('/forgot-password', passwordResetLimiter, validate(validateForgotPassword), forgotPassword);
+router.post('/register', authLimiter, recaptchaV2Middleware(), validate(validateRegister), register);
+router.post('/login', authLimiter, recaptchaV2Middleware(), validate(validateLogin), login);
+router.post('/forgot-password', passwordResetLimiter, recaptchaV2Middleware(), validate(validateForgotPassword), forgotPassword);
 router.put('/reset-password', validate(validateResetPassword), resetPassword);
 router.get('/verify-email', verifyEmail);
+
+// New: Verify PIN for signup/login
+router.post('/verify-otp', verifyOtp);
 
 // Protected routes
 router.get('/me', authenticate, getMe);

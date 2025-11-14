@@ -1,3 +1,4 @@
+// Module: recaptcha.js
 import fetch from 'node-fetch';
 import { createError } from '../utils/errorUtils.js';
 
@@ -138,10 +139,69 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000);
 
+// v2: Verify Google reCAPTCHA v2 token (checkbox)
+export const verifyRecaptchaV2 = async (token) => {
+  const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+
+  if (!secretKey) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  reCAPTCHA v2 not configured - skipping in development');
+      return { success: true, hostname: 'localhost' };
+    }
+    throw new Error('reCAPTCHA secret key not configured');
+  }
+
+  if (!token) {
+    throw createError('reCAPTCHA token is required', 400);
+  }
+
+  try {
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ secret: secretKey, response: token }),
+    });
+    const data = await response.json();
+
+    if (!data.success) {
+      console.error('reCAPTCHA v2 failed:', data['error-codes']);
+      throw createError('reCAPTCHA verification failed', 400);
+    }
+
+    return data;
+  } catch (error) {
+    if (error.status) throw error;
+    console.error('reCAPTCHA v2 error:', error);
+    throw createError('Failed to verify reCAPTCHA', 500);
+  }
+};
+
+// v2 middleware
+export const recaptchaV2Middleware = () => {
+  return async (req, res, next) => {
+    try {
+      const token = req.body.recaptchaToken || req.headers['x-recaptcha-token'];
+
+      if (!process.env.RECAPTCHA_SECRET_KEY && process.env.NODE_ENV === 'development') {
+        console.warn('⚠️  reCAPTCHA v2 middleware: skipping in development (not configured)');
+        return next();
+      }
+
+      const result = await verifyRecaptchaV2(token);
+      req.recaptchaVerification = result;
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
 export default {
   verifyRecaptcha,
   recaptchaMiddleware,
   trackFailedAttempt,
   isRateLimited,
-  clearFailedAttempts
+  clearFailedAttempts,
+  verifyRecaptchaV2,
+  recaptchaV2Middleware
 };

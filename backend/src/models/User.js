@@ -57,6 +57,9 @@ const userSchema = new mongoose.Schema({
   emailVerificationToken: String,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  emailOtpCode: { type: String, default: null },
+  emailOtpExpires: { type: Date, default: null },
+  emailOtpPurpose: { type: String, enum: ['signup', 'login'], default: null },
   lastLogin: Date,
   isActive: {
     type: Boolean,

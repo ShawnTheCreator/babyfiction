@@ -23,64 +23,73 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const token = loginRes?.token;
-      if (token) setAuthToken(token);
-      // After successful login, merge guest cart & wishlist with server data (don't clear server)
-      try {
-        const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
-        const guestCart = raw ? JSON.parse(raw) : [];
-        if (Array.isArray(guestCart) && guestCart.length > 0) {
-          for (const it of guestCart) {
-            if (!it?.id) continue;
+      if (token) {
+        setAuthToken(token);
+        // After successful login, merge guest cart & wishlist with server data (don't clear server)
+        try {
+          const raw = typeof window !== 'undefined' ? localStorage.getItem('bf_cart') : null;
+          const guestCart = raw ? JSON.parse(raw) : [];
+          if (Array.isArray(guestCart) && guestCart.length > 0) {
+            for (const it of guestCart) {
+              if (!it?.id) continue;
+              try {
+                await fetchJson('/api/cart/items', {
+                  method: 'POST',
+                  body: JSON.stringify({ product: it.id, quantity: 1 }),
+                });
+              } catch {}
+            }
             try {
-              await fetchJson('/api/cart/items', {
-                method: 'POST',
-                body: JSON.stringify({ product: it.id, quantity: 1 }),
-              });
+              localStorage.setItem('bf_cart', JSON.stringify([]));
+              if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
             } catch {}
           }
-          try {
-            localStorage.setItem('bf_cart', JSON.stringify([]));
-            if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_cart_updated'));
-          } catch {}
-        }
-        // Server cart persists - no deletion
+          // Server cart persists - no deletion
 
-        // Wishlist migration
-        const rawW = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
-        const guestWish = rawW ? JSON.parse(rawW) : [];
-        if (Array.isArray(guestWish) && guestWish.length > 0) {
-          for (const it of guestWish) {
-            if (!it?.id) continue;
+          // Wishlist migration
+          const rawW = typeof window !== 'undefined' ? localStorage.getItem('bf_wishlist') : null;
+          const guestWish = rawW ? JSON.parse(rawW) : [];
+          if (Array.isArray(guestWish) && guestWish.length > 0) {
+            for (const it of guestWish) {
+              if (!it?.id) continue;
+              try {
+                await fetchJson('/api/wishlist/items', {
+                  method: 'POST',
+                  body: JSON.stringify({ product: it.id }),
+                });
+              } catch {}
+            }
             try {
-              await fetchJson('/api/wishlist/items', {
-                method: 'POST',
-                body: JSON.stringify({ product: it.id }),
-              });
+              localStorage.setItem('bf_wishlist', JSON.stringify([]));
+              if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
             } catch {}
           }
-          try {
-            localStorage.setItem('bf_wishlist', JSON.stringify([]));
-            if (typeof window !== 'undefined') window.dispatchEvent(new Event('bf_wishlist_updated'));
-          } catch {}
+          // Server wishlist persists - no deletion
+        } catch {}
+        // After successful login, determine role and redirect accordingly
+        try {
+          const me: any = await fetchJson('/api/auth/me');
+          const user = me?.data || me?.user || me;
+          const role = user?.role;
+          router.push(role === 'admin' ? '/admin' : '/');
+        } catch {
+          // Fallback: if /me fails, go home
+          router.push('/');
+          return;
         }
-        // Server wishlist persists - no deletion
-      } catch {}
-      // After successful login, determine role and redirect accordingly
-      try {
-        const me: any = await fetchJson('/api/auth/me');
-        const user = me?.data || me?.user || me;
-        const role = user?.role;
-        router.push(role === 'admin' ? '/admin' : '/');
-      } catch {
-        // Fallback: if /me fails, go home
-        router.push('/');
+        if (loginRes?.otpSent) {
+          // Step verification: ask for PIN
+          router.push(`/auth/verify?mode=login&email=${encodeURIComponent(email)}`);
+          return;
+        }
+        throw new Error('Unexpected login response');
+      } catch (err: any) {
+        const status = (err && typeof err === 'object' && 'status' in err) ? (err as any).status : undefined;
+        if (status === 401) setError('Invalid email or password');
+        else setError(err?.message || 'Login failed');
+      } finally {
+        setLoading(false);
       }
-    } catch (err: any) {
-      const status = (err && typeof err === 'object' && 'status' in err) ? (err as any).status : undefined;
-      if (status === 401) setError('Invalid email or password');
-      else setError(err?.message || 'Login failed');
-    } finally {
-      setLoading(false);
     }
   };
 

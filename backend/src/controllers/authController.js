@@ -15,6 +15,9 @@ const generateToken = (userId) => {
   });
 };
 
+// Helper: Generate 6-digit PIN
+const generatePin = () => String(Math.floor(100000 + Math.random() * 900000));
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -36,12 +39,18 @@ export const register = async (req, res, next) => {
       password
     });
 
-    // Generate verification token
+    // Generate verification token (link)
     const verificationToken = crypto.randomBytes(32).toString('hex');
     user.emailVerificationToken = verificationToken;
+
+    // Generate PIN for step verification
+    const pin = generatePin();
+    user.emailOtpCode = pin;
+    user.emailOtpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    user.emailOtpPurpose = 'signup';
     await user.save();
 
-    // Send verification email (non-blocking)
+    // Send verification email link (non-blocking)
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
     try {
       await sendEmail({
@@ -51,25 +60,26 @@ export const register = async (req, res, next) => {
         html: `<p>Hi ${user.firstName},</p><p>Please verify your email by clicking the link below:</p><p><a href="${verificationUrl}">${verificationUrl}</a></p>`
       });
     } catch (e) {
-      // Do not block signup if email sending fails
       console.error('Email send failed:', e?.message || e);
     }
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Send PIN via Resend
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Your Babyfiction verification PIN',
+        text: `Your verification PIN is ${pin}. It expires in 15 minutes.`,
+        html: `<p>Your verification PIN is <strong>${pin}</strong>.</p><p>It expires in 15 minutes.</p>`
+      });
+    } catch (e) {
+      console.error('Failed to send verification PIN:', e?.message || e);
+    }
 
+    // Respond without token; require PIN step
     res.status(201).json({
       success: true,
-      message: 'User registered successfully. Please check your email to verify your account.',
-      token,
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        isEmailVerified: user.isEmailVerified
-      }
+      message: 'Signup successful. Please enter the PIN sent to your email to verify.',
+      otpSent: true
     });
   } catch (error) {
     next(error);
@@ -79,6 +89,7 @@ export const register = async (req, res, next) => {
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public
+// login handler
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -92,7 +103,7 @@ export const login = async (req, res, next) => {
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       trackFailedAttempt(email);
-      return next(createError('Invalid credentials', 401));
+      return next(createError('Email does not exist', 401));
     }
 
     // Check if account is active
@@ -104,7 +115,7 @@ export const login = async (req, res, next) => {
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       trackFailedAttempt(email);
-      return next(createError('Invalid credentials', 401));
+      return next(createError('Incorrect password', 401));
     }
 
     // Clear failed attempts on successful login
@@ -112,14 +123,88 @@ export const login = async (req, res, next) => {
 
     // Update last login
     user.lastLogin = new Date();
+
+    // Generate and email PIN
+    const pin = generatePin();
+    user.emailOtpCode = pin;
+    user.emailOtpExpires = new Date(Date.now() + 15 * 60 * 1000);
+    user.emailOtpPurpose = 'login';
     await user.save();
 
-    // Generate token
+    try {
+      await sendEmail({
+        to: user.email,
+        subject: 'Your Babyfiction login PIN',
+        text: `Your login PIN is ${pin}. It expires in 15 minutes.`,
+        html: `<p>Your login PIN is <strong>${pin}</strong>.</p><p>It expires in 15 minutes.</p>`
+      });
+    } catch (emailError) {
+      console.error('Failed to send login PIN:', emailError);
+    }
+
+    // Respond that PIN was sent; do not issue token yet
+    res.json({
+      success: true,
+      message: 'Login PIN sent to your email',
+      otpSent: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        isEmailVerified: user.isEmailVerified
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Verify email/login PIN
+// @route   POST /api/auth/verify-otp
+// @access  Public
+export const verifyOtp = async (req, res, next) => {
+  try {
+    const { email, code, purpose } = req.body;
+    if (!email || !code || !purpose) {
+      return next(createError('Email, code, and purpose are required', 400));
+    }
+
+    const user = await User.findOne({ email });
+    if (!user || !user.emailOtpCode || !user.emailOtpExpires) {
+      return next(createError('No active PIN verification for this email', 400));
+    }
+
+    if (String(user.emailOtpCode) !== String(code)) {
+      return next(createError('Invalid PIN code', 400));
+    }
+
+    if (new Date() > new Date(user.emailOtpExpires)) {
+      return next(createError('PIN expired. Please request a new one.', 400));
+    }
+
+    if (String(user.emailOtpPurpose) !== String(purpose)) {
+      return next(createError('Invalid PIN purpose', 400));
+    }
+
+    // Clear OTP fields
+    user.emailOtpCode = null;
+    user.emailOtpExpires = null;
+    user.emailOtpPurpose = null;
+
+    // If signup verification, mark email verified
+    if (purpose === 'signup') {
+      user.isEmailVerified = true;
+      user.emailVerificationToken = undefined;
+    }
+
+    await user.save();
+
+    // Issue token
     const token = generateToken(user._id);
 
     res.json({
       success: true,
-      message: 'Login successful',
+      message: 'Verification successful',
       token,
       user: {
         id: user._id,
