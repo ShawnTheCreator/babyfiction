@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrentUser } from "@/lib/auth";
-import { setAuthToken, getAuthToken } from "@/lib/api";
+import { setAuthToken, getAuthToken, fetchJson } from "@/lib/api";
 import RequireAuth from "@/components/RequireAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -129,46 +129,29 @@ function AccountDashboard() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Fetch user profile
-        const [profileRes, ordersRes, wishlistRes] = await Promise.all([
-          fetch('/api/users/me', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-          }),
-          fetch('/api/orders', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-          }),
-          fetch('/api/wishlist', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-          })
+        // Use shared helper (adds Authorization with bf_token and base URL)
+        const [profileData, ordersData, wishlistData]: any = await Promise.all([
+          fetchJson('/api/auth/me'),
+          fetchJson('/api/orders'),
+          fetchJson('/api/wishlist'),
         ]);
 
-        // Handle profile response
-        if (profileRes.ok) {
-          const profileData = await profileRes.json();
-          setProfile(profileData.data || profileData);
-        } else {
-          throw new Error('Failed to load profile');
-        }
+        // Profile
+        setProfile(profileData?.data || profileData?.user || profileData);
 
-        // Handle orders response
-        if (ordersRes.ok) {
-          const ordersData = await ordersRes.json();
-          setOrders(Array.isArray(ordersData.data) ? ordersData.data : 
-                   Array.isArray(ordersData.orders) ? ordersData.orders : 
-                   Array.isArray(ordersData) ? ordersData : []);
-        } else {
-          throw new Error('Failed to load orders');
-        }
+        // Orders
+        setOrders(
+          Array.isArray(ordersData?.data) ? ordersData.data :
+          Array.isArray(ordersData?.orders) ? ordersData.orders :
+          Array.isArray(ordersData) ? ordersData : []
+        );
 
-        // Handle wishlist response
-        if (wishlistRes.ok) {
-          const wishlistData = await wishlistRes.json();
-          setWishlist(Array.isArray(wishlistData.items) ? wishlistData.items : 
-                     Array.isArray(wishlistData) ? wishlistData : 
-                     wishlistData?.wishlist?.items || []);
-        } else {
-          throw new Error('Failed to load wishlist');
-        }
+        // Wishlist
+        setWishlist(
+          Array.isArray(wishlistData?.items) ? wishlistData.items :
+          Array.isArray(wishlistData) ? wishlistData :
+          wishlistData?.wishlist?.items || []
+        );
       } catch (err) {
         console.error('Error fetching user data:', err);
         setError(prev => ({
@@ -199,35 +182,18 @@ function AccountDashboard() {
   const moveToCart = async (productId: string) => {
     try {
       // Add to cart
-      const addToCartRes = await fetch('/api/cart', {
+      await fetchJson('/api/cart', {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ productId, quantity: 1 })
+        body: JSON.stringify({ productId, quantity: 1 }),
       });
 
-      if (addToCartRes.ok) {
-        // Remove from wishlist if added to cart successfully
-        const removeFromWishlistRes = await fetch(`/api/wishlist/${productId}`, {
-          method: 'DELETE',
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          }
-        });
+      // Remove from wishlist
+      await fetchJson(`/api/wishlist/${productId}`, { method: 'DELETE' });
 
-        if (removeFromWishlistRes.ok) {
-          // Update local wishlist state
-          setWishlist(prev => prev.filter(item => item.product._id !== productId));
-          // Show success message or redirect to cart
-          router.push('/cart');
-        }
-      } else {
-        const error = await addToCartRes.json();
-        throw new Error(error.message || 'Failed to add to cart');
-      }
-    } catch (err) {
+      // Update local wishlist state and redirect to cart
+      setWishlist(prev => prev.filter(item => item.product._id !== productId));
+      router.push('/cart');
+    } catch (err: any) {
       console.error('Error moving to cart:', err);
       alert(err.message || 'Failed to move item to cart');
     }
@@ -487,13 +453,13 @@ function AccountDashboard() {
                   message={error.orders} 
                   onRetry={() => {
                     setLoading(prev => ({ ...prev, orders: true }));
-                    // Re-fetch orders
-                    fetch('/api/orders', {
-                      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        setOrders(Array.isArray(data.data) ? data.data : []);
+                    fetchJson('/api/orders')
+                      .then((data) => {
+                        setOrders(
+                          Array.isArray((data as any)?.data) ? (data as any).data :
+                          Array.isArray((data as any)?.orders) ? (data as any).orders :
+                          Array.isArray(data) ? data : []
+                        );
                         setError(prev => ({ ...prev, orders: '' }));
                       })
                       .catch(() => setError(prev => ({ ...prev, orders: 'Failed to load orders' })))
@@ -539,8 +505,8 @@ function AccountDashboard() {
                       {orders.slice(0, 5).map((order) => (
                         <tr key={order._id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                            #{order.orderNumber || order._id.substring(-6)}
-                          </td>
+                              #{order.orderNumber || order._id.slice(-6)}
+                            </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {formatDate(order.createdAt)}
                           </td>
@@ -591,13 +557,13 @@ function AccountDashboard() {
                   message={error.wishlist} 
                   onRetry={() => {
                     setLoading(prev => ({ ...prev, wishlist: true }));
-                    // Re-fetch wishlist
-                    fetch('/api/wishlist', {
-                      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        setWishlist(Array.isArray(data.items) ? data.items : []);
+                    fetchJson('/api/wishlist')
+                      .then((data) => {
+                        setWishlist(
+                          Array.isArray((data as any)?.items) ? (data as any).items :
+                          Array.isArray(data) ? data :
+(data as any)?.wishlist?.items || []
+                        );
                         setError(prev => ({ ...prev, wishlist: '' }));
                       })
                       .catch(() => setError(prev => ({ ...prev, wishlist: 'Failed to load wishlist' })))
@@ -638,12 +604,7 @@ function AccountDashboard() {
                             onClick={(e) => {
                               e.preventDefault();
                               // Remove from wishlist
-                              fetch(`/api/wishlist/${item.product._id}`, {
-                                method: 'DELETE',
-                                headers: { 
-                                  'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                }
-                              })
+                              fetchJson(`/api/wishlist/${item.product._id}`, { method: 'DELETE' })
                                 .then(() => {
                                   setWishlist(prev => prev.filter(i => i._id !== item._id));
                                 })
@@ -710,12 +671,13 @@ function AccountDashboard() {
                   message={error.orders} 
                   onRetry={() => {
                     setLoading(prev => ({ ...prev, orders: true }));
-                    fetch('/api/orders', {
-                      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        setOrders(Array.isArray(data.data) ? data.data : []);
+                    fetchJson('/api/orders')
+                      .then((data) => {
+                        setOrders(
+                          Array.isArray((data as any)?.data) ? (data as any).data :
+                          Array.isArray((data as any)?.orders) ? (data as any).orders :
+                          Array.isArray(data) ? data : []
+                        );
                         setError(prev => ({ ...prev, orders: '' }));
                       })
                       .catch(() => setError(prev => ({ ...prev, orders: 'Failed to load orders' })))
@@ -743,7 +705,7 @@ function AccountDashboard() {
                         <div className="flex items-center space-x-4">
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              Order #{order.orderNumber || order._id.substring(-6)}
+                              Order #{order.orderNumber || order._id.slice(-6)}
                             </p>
                             <p className="text-sm text-gray-500">
                               Placed on {formatDate(order.createdAt)}
@@ -850,18 +812,13 @@ function AccountDashboard() {
                       const movePromises = wishlist
                         .filter(item => item.product.countInStock > 0)
                         .map(item => 
-                          fetch('/api/cart', {
+                          fetchJson('/api/cart', {
                             method: 'POST',
-                            headers: { 
-                              'Content-Type': 'application/json',
-                              'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            },
                             body: JSON.stringify({ 
                               productId: item.product._id, 
                               quantity: 1 
                             })
-                          })
-                          .then(() => item.product._id)
+                          }).then(() => item.product._id)
                         );
                       
                       Promise.all(movePromises)
@@ -889,12 +846,13 @@ function AccountDashboard() {
                   message={error.wishlist} 
                   onRetry={() => {
                     setLoading(prev => ({ ...prev, wishlist: true }));
-                    fetch('/api/wishlist', {
-                      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        setWishlist(Array.isArray(data.items) ? data.items : []);
+                    fetchJson('/api/wishlist')
+                      .then((data) => {
+                        setWishlist(
+                          Array.isArray((data as any)?.items) ? (data as any).items :
+                          Array.isArray(data) ? data :
+                          (data as any)?.wishlist?.items || []
+                        );
                         setError(prev => ({ ...prev, wishlist: '' }));
                       })
                       .catch(() => setError(prev => ({ ...prev, wishlist: 'Failed to load wishlist' })))
@@ -935,12 +893,7 @@ function AccountDashboard() {
                             onClick={(e) => {
                               e.preventDefault();
                               // Remove from wishlist
-                              fetch(`/api/wishlist/${item.product._id}`, {
-                                method: 'DELETE',
-                                headers: { 
-                                  'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                }
-                              })
+                              fetchJson(`/api/wishlist/${item.product._id}`, { method: 'DELETE' })
                                 .then(() => {
                                   setWishlist(prev => prev.filter(i => i._id !== item._id));
                                 })
@@ -1021,12 +974,9 @@ function AccountDashboard() {
                   message={error.profile} 
                   onRetry={() => {
                     setLoading(prev => ({ ...prev, profile: true }));
-                    fetch('/api/users/me', {
-                      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        setProfile(data.data || data);
+                    fetchJson('/api/auth/me')
+                      .then((data) => {
+                        setProfile((data as any)?.data || (data as any)?.user || data);
                         setError(prev => ({ ...prev, profile: '' }));
                       })
                       .catch(() => setError(prev => ({ ...prev, profile: 'Failed to load profile' })))
@@ -1273,11 +1223,8 @@ function AccountDashboard() {
                       onClick={() => {
                         if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
                           // Handle account deletion
-                          fetch('/api/users/me', {
-                            method: 'DELETE',
-                            headers: { 
-                              'Authorization': `Bearer ${getAuthToken()}`
-                            }
+                          fetchJson('/api/users/me', {
+                            method: 'DELETE'
                           })
                             .then(() => {
                               setAuthToken(null);

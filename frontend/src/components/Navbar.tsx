@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useCurrentUser } from "@/lib/auth";
 import { fetchJson, getAuthToken, setAuthToken } from "@/lib/api";
 
+// Navbar component
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,6 +20,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useCurrentUser();
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const handleLogout = () => {
     try {
@@ -64,11 +66,25 @@ const Navbar = () => {
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+      }
     };
-    window.addEventListener("scroll", handleScroll);
-    
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    const cacheKey = 'bf_counts_cache';
+    try {
+      const cached = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+      if (typeof cached.cart === 'number') setCartCount(cached.cart);
+      if (typeof cached.wishlist === 'number') setWishlistCount(cached.wishlist);
+    } catch {}
+
     const syncCounts = async () => {
       try {
         const token = getAuthToken();
@@ -77,27 +93,27 @@ const Navbar = () => {
             fetchJson('/api/cart/count'),
             fetchJson('/api/wishlist/count')
           ]);
-          setCartCount(typeof cartRes?.count === 'number' ? cartRes.count : 0);
-          setWishlistCount(typeof wishRes?.count === 'number' ? wishRes.count : 0);
+          const c = typeof cartRes?.count === 'number' ? cartRes.count : 0;
+          const w = typeof wishRes?.count === 'number' ? wishRes.count : 0;
+          setCartCount(c);
+          setWishlistCount(w);
+          try { localStorage.setItem(cacheKey, JSON.stringify({ cart: c, wishlist: w })); } catch {}
         } else {
           setCartCount(0);
           setWishlistCount(0);
         }
-      } catch {
-        setCartCount(0);
-        setWishlistCount(0);
-      }
+      } catch {}
     };
-    
+
     syncCounts();
-    
+
     const onCartUpdated = () => syncCounts();
     const onWishlistUpdated = () => syncCounts();
     window.addEventListener('bf_cart_updated', onCartUpdated as EventListener);
     window.addEventListener('bf_wishlist_updated', onWishlistUpdated as EventListener);
-    
+
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", onScroll);
       window.removeEventListener('bf_cart_updated', onCartUpdated as EventListener);
       window.removeEventListener('bf_wishlist_updated', onWishlistUpdated as EventListener);
     };
@@ -184,18 +200,54 @@ const Navbar = () => {
           {/* Auth / User display */}
           {!user ? (
             <>
-              <Link href="/auth/login" className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+              <Link href="/auth/login" prefetch className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
                 Login
               </Link>
-              <Link href="/auth/signup" className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+              <Link href="/auth/signup" prefetch className="hidden md:inline text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
                 Sign up
               </Link>
             </>
           ) : (
-            <div className="hidden md:flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-              <User className="h-4 w-4" />
-              <span>Hello, {user.name || user.email}</span>
-              <button onClick={handleLogout} className="underline hover:text-black dark:hover:text-white">Logout</button>
+            <div className="hidden md:flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-300 relative">
+              <button
+                className="flex items-center gap-2 hover:text-black dark:hover:text-white"
+                onClick={() => setAccountOpen((o) => !o)}
+                onMouseEnter={() => setAccountOpen(true)}
+                onBlur={() => setTimeout(() => setAccountOpen(false), 150)}
+                aria-haspopup="menu"
+                aria-expanded={accountOpen}
+              >
+                <User className="h-4 w-4" />
+                <span>Hello, {user.name || user.email}</span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+  
+              {accountOpen && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-black shadow-lg rounded border border-gray-200 dark:border-gray-800 z-50">
+                  <Link
+                    href="/account"
+                    prefetch
+                    className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900"
+                    onClick={() => setAccountOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/wishlist"
+                    prefetch
+                    className="block px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900"
+                    onClick={() => setAccountOpen(false)}
+                  >
+                    Wishlist
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-900"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {user?.role === 'admin' && (
@@ -216,7 +268,7 @@ const Navbar = () => {
             className="relative hover:bg-gray-100 dark:hover:bg-gray-900"
             asChild
           >
-            <Link href="/wishlist" title="Wishlist">
+            <Link href="/wishlist" prefetch title="Wishlist">
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-black dark:bg-white text-white dark:text-black text-xs rounded-full h-5 min-w-5 px-1 flex items-center justify-center font-bold">
@@ -226,7 +278,7 @@ const Navbar = () => {
             </Link>
           </Button>
 
-          <Link href="/cart">
+          <Link href="/cart" prefetch>
             <Button
               variant="ghost"
               size="icon"
@@ -273,7 +325,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 shadow-lg">
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white dark:bg:black border-b border-gray-200 dark:border-gray-800 shadow-lg">
           <div className="flex flex-col p-6 gap-4">
             {navLinks.map((link) => (
               <div key={link.name}>
@@ -316,23 +368,28 @@ const Navbar = () => {
                   <Link href="/auth/login" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
                     Login
                   </Link>
-                  <Link href="/auth/signup" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+                  <Link href="/auth/signup" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text:white">
                     Sign up
                   </Link>
                 </>
               ) : (
                 <div className="flex items-center justify-between text-lg font-medium text-gray-700 dark:text-gray-300">
                   <span>Hello, {user.name || user.email}</span>
-                  <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="ml-4 underline hover:text-black dark:hover:text-white">Logout</button>
+                  <button onClick={() => { handleLogout(); setMobileOpen(false); }} className="ml-4 underline hover:text-black dark:hover:text:white">Logout</button>
                 </div>
               )}
+              {user && (
+                <Link href="/account" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text:white">
+                  Account Dashboard
+                </Link>
+              )}
               {user?.role === 'admin' && (
-                <Link href="/admin" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+                <Link href="/admin" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text:black dark:hover:text:white">
                   Admin
                 </Link>
               )}
               {user?.role === 'driver' && (
-                <Link href="/driver" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white">
+                <Link href="/driver" onClick={() => setMobileOpen(false)} className="text-lg font-medium text-gray-700 dark:text-gray-300 hover:text:black dark:hover:text:white">
                   Driver Portal
                 </Link>
               )}
