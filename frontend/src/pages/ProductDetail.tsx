@@ -155,10 +155,10 @@ const ProductDetail = () => {
         {/* Product Main Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 lg:gap-[60px] mb-20">
           {/* Left: Product Images */}
-          <div className="order-2 lg:order-1">
+          <div className="order-1 lg:order-1">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_80px] gap-5">
               {/* Main Image */}
-              <div className="order-2 lg:order-1 w-full max-w-[600px] border border-[#d9d9d9] rounded bg-gray-50">
+              <div className="order-1 lg:order-1 w-full max-w-[600px] border border-[#d9d9d9] rounded bg-gray-50">
                 <img
                   src={product.images[selectedImage] || '/assets/images/products/placeholder.jpg'}
                   alt={product.name}
@@ -170,7 +170,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Thumbnails */}
-              <div className="order-1 lg:order-2 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible">
+              <div className="order-2 lg:order-2 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
@@ -191,7 +191,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Right: Product Details */}
-          <div className="order-1 lg:order-2 lg:sticky lg:top-[200px] self-start">
+          <div className="order-2 lg:order-2 lg:sticky lg:top-[200px] self-start">
             <div className="relative max-w-[400px]">
               {/* Wishlist Button */}
               <button
@@ -351,8 +351,18 @@ const ProductDetail = () => {
                   </button>
                   {expandedSection === 'shipping' && (
                     <div className="pb-4 font-[family-name:var(--font-body)] text-sm text-gray-600 space-y-2">
-                      <p className="font-semibold">DELIVERY TAKES 2-5 BUSINESS DAYS.</p>
-                      <p className="text-red-500">× Pickup currently unavailable at Co.Space Entrepreneur Village | Unit C1</p>
+                      <p className="font-semibold">NATIONWIDE DELIVERY AVAILABLE</p>
+                      <p>Standard delivery takes 3-5 working days, depending on your location within South Africa and courier availability.</p>
+                      <p>Delays may occasionally occur due to unforeseen circumstances such as weather conditions, public holidays, or courier operational challenges.</p>
+                      <p className="font-semibold mt-3">Shipping Rates:</p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>FREE shipping for orders over R1,300</li>
+                        <li>R130 to metropolitan areas</li>
+                        <li>R150 to suburban areas (R130 + R20)</li>
+                        <li>R160 to rural areas (R130 + R20 + R10)</li>
+                      </ul>
+                      <p className="text-red-500 mt-3">× In-store pickup not available - Online delivery only</p>
+                      <p className="mt-3">We use Internet Express courier service for reliable nationwide delivery.</p>
                     </div>
                   )}
                 </div>
@@ -378,7 +388,10 @@ const ProductDetail = () => {
                   </button>
                   {expandedSection === 'payments' && (
                     <div className="pb-4 space-y-4">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-4 flex-wrap">
+                        <img src="/assets/images/icons/instant-eft.svg" alt="Instant EFT" className="h-10" onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x40?text=EFT';
+                        }} />
                         <img src="/assets/images/icons/capitec-pay.svg" alt="Capitec Pay" className="h-10" onError={(e) => {
                           (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x40?text=Capitec';
                         }} />
@@ -389,9 +402,14 @@ const ProductDetail = () => {
                           (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80x40?text=Google+Pay';
                         }} />
                       </div>
-                      <p className="font-[family-name:var(--font-body)] text-sm text-gray-600 font-semibold">
-                        BUY NOW PAY LATER
-                      </p>
+                      <div className="space-y-2">
+                        <p className="font-[family-name:var(--font-body)] text-sm text-gray-600">
+                          We accept debit and credit cards, Instant EFT, Google Pay, Apple Pay, Capitec Pay, and PayFast for secure transactions.
+                        </p>
+                        <p className="font-[family-name:var(--font-body)] text-sm text-gray-600 font-semibold">
+                          We do not currently offer credit or Laybuy installment options.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -415,10 +433,10 @@ const ProductDetail = () => {
                     )}
                   </button>
                   {expandedSection === 'returns' && (
-                    <div className="pb-4 font-[family-name:var(--font-body)] text-sm text-gray-600">
-                      <p>30-day return policy</p>
-                      <p>Items must be unworn and in original condition</p>
-                      <p>Free returns within South Africa</p>
+                    <div className="pb-4 font-[family-name:var(--font-body)] text-sm text-gray-600 space-y-2">
+                      <p className="font-semibold">At this moment, we do not offer any returns, exchanges, or refunds on any products purchased through our store.</p>
+                      <p>We encourage customers to carefully review product descriptions, sizing information, and images before completing their purchase.</p>
+                      <p>If your order arrives damaged or you receive an incorrect item, please contact us immediately at babyfictions2021@gmail.com within 48 hours of delivery with photos of the issue.</p>
                     </div>
                   )}
                 </div>
