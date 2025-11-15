@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 export const dynamic = 'force-dynamic';
 
@@ -5,51 +6,24 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { fetchJson, setAuthToken } from '@/lib/api';
+=======
+// imports and dynamic settings
+import { Suspense } from 'react';
+export const dynamic = 'force-dynamic';
+import VerifyClient from './VerifyClient';
+>>>>>>> 3f46de1d49502a0eeaaaf0169d2a7717ec48ccbe
 
-export default function VerifyPage() {
-  const router = useRouter();
-  const params = useSearchParams();
-  const mode = (params.get('mode') || 'login') as 'login' | 'signup';
-  const initialEmail = params.get('email') || '';
-  const [email, setEmail] = useState(initialEmail);
-  const [code, setCode] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    if (!email || !code) {
-      setError('Email and PIN are required');
-      return;
-    }
-    setLoading(true);
-    try {
-      const res: any = await fetchJson('/api/auth/verify-otp', {
-        method: 'POST',
-        body: JSON.stringify({ email, code, purpose: mode }),
-      });
-      const token = res?.token;
-      if (!token) throw new Error('Verification failed');
-      setAuthToken(token);
-      // Optional: fetch user and route by role
-      try {
-        const me: any = await fetchJson('/api/auth/me');
-        const user = me?.data || me?.user || me;
-        const role = user?.role;
-        router.push(role === 'admin' ? '/admin' : '/');
-      } catch {
-        router.push('/');
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Failed to verify PIN');
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function VerifyPage({
+  searchParams,
+}: {
+  searchParams: { mode?: string; email?: string };
+}) {
+  const mode = (searchParams?.mode ?? 'login') as 'login' | 'signup';
+  const initialEmail = searchParams?.email ?? '';
 
   return (
     <Suspense fallback={<div className="min-h-screen w-full bg-zinc-900 text-white flex items-center justify-center p-6">Loading…</div>}>
+<<<<<<< HEAD
       <div className="min-h-screen w-full bg-gradient-to-br from-zinc-900 via-neutral-800 to-zinc-900 text-white flex items-center justify-center p-6">
         <div className="relative w-full max-w-md">
           <div className="mb-4">
@@ -108,6 +82,9 @@ export default function VerifyPage() {
           </div>
         </div>
       </div>
+=======
+      <VerifyClient initialEmail={initialEmail} mode={mode} />
+>>>>>>> 3f46de1d49502a0eeaaaf0169d2a7717ec48ccbe
     </Suspense>
   );
 }

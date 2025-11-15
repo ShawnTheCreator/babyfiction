@@ -68,8 +68,41 @@ export const register = async (req, res, next) => {
       await sendEmail({
         to: user.email,
         subject: 'Your Babyfiction verification PIN',
-        text: `Your verification PIN is ${pin}. It expires in 15 minutes.`,
-        html: `<p>Your verification PIN is <strong>${pin}</strong>.</p><p>It expires in 15 minutes.</p>`
+        text: `Hi ${user.firstName || 'there'}, your verification PIN is ${pin}. It expires in 15 minutes.`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #000; color: #fff; padding: 20px; text-align: center; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 8px; margin-top: 20px; }
+                .pin { font-size: 28px; letter-spacing: 6px; font-weight: bold; background: #000; color: #fff; padding: 12px 18px; border-radius: 8px; text-align: center; margin: 20px 0; }
+                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Babyfiction</h1>
+                </div>
+                <div class="content">
+                  <h2>Email Verification PIN</h2>
+                  <p>Hi ${user.firstName || 'there'},</p>
+                  <p>Use the PIN below to verify your email and complete signup:</p>
+                  <div class="pin">${pin}</div>
+                  <p><strong>Expires in 15 minutes.</strong> If you didn’t request this, you can ignore this email.</p>
+                </div>
+                <div class="footer">
+                  <p>&copy; ${new Date().getFullYear()} Babyfiction. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
       });
     } catch (e) {
       console.error('Failed to send verification PIN:', e?.message || e);
@@ -156,8 +189,41 @@ export const login = async (req, res, next) => {
       await sendEmail({
         to: user.email,
         subject: 'Your Babyfiction login PIN',
-        text: `Your login PIN is ${pin}. It expires in 15 minutes.`,
-        html: `<p>Your login PIN is <strong>${pin}</strong>.</p><p>It expires in 15 minutes.</p>`
+        text: `Hi ${user.firstName || 'there'}, your login PIN is ${pin}. It expires in 15 minutes.`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: #000; color: #fff; padding: 20px; text-align: center; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 8px; margin-top: 20px; }
+                .pin { font-size: 28px; letter-spacing: 6px; font-weight: bold; background: #000; color: #fff; padding: 12px 18px; border-radius: 8px; text-align: center; margin: 20px 0; }
+                .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1>Babyfiction</h1>
+                </div>
+                <div class="content">
+                  <h2>Login PIN</h2>
+                  <p>Hi ${user.firstName || 'there'},</p>
+                  <p>Use this PIN to complete your login:</p>
+                  <div class="pin">${pin}</div>
+                  <p><strong>Expires in 15 minutes.</strong> If you didn’t request this, you can disregard this email.</p>
+                </div>
+                <div class="footer">
+                  <p>&copy; ${new Date().getFullYear()} Babyfiction. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+          </html>
+        `
       });
     } catch (emailError) {
       console.error('Failed to send login PIN:', emailError);
