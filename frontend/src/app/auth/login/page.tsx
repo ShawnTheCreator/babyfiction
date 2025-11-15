@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { fetchJson, setAuthToken } from '@/lib/api';
 import NextDynamic from 'next/dynamic';
-const ReCAPTCHA = NextDynamic(() => import('react-google-recaptcha'), { ssr: false });
+
+// Type the dynamic import so TS knows ReCAPTCHA props
+const ReCAPTCHA = NextDynamic<import('react-google-recaptcha').ReCAPTCHAProps>(
+  () => import('react-google-recaptcha'),
+  { ssr: false }
+);
 
 export default function LoginPage() {
   const router = useRouter();

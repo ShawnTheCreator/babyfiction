@@ -1,8 +1,8 @@
-// File: C:\Users\shawn\Desktop\babyfiction\frontend\src\app\auth\verify\page.tsx
-import * as entry from '../../../../../src/app/auth/verify/page.js'
+// File: C:\Users\shawn\Desktop\babyfiction\frontend\src\app\account\page.tsx
+import * as entry from '../../../../src/app/account/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
-type TEntry = typeof import('../../../../../src/app/auth/verify/page.js')
+type TEntry = typeof import('../../../../src/app/account/page.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{
