@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, X, RefreshCw } from "lucide-react";
+import { Minus, Plus, X } from "lucide-react";
 import { fetchJson, getAuthToken } from "@/lib/api";
 
 type CartItem = {
@@ -20,6 +20,7 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   async function loadCart() {
     setError(null);
@@ -228,12 +229,6 @@ const Cart = () => {
                         <button className="w-10 h-10 border border-gray-300 rounded flex items-center justify-center text-xs font-medium hover:border-black transition-colors">
                           {item.size || 'L'}
                         </button>
-                        <button 
-                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-black"
-                          aria-label="Change size"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
                       </div>
 
                       {/* Color Selector */}
@@ -241,12 +236,6 @@ const Cart = () => {
                         <div className="w-10 h-10 border border-gray-300 rounded overflow-hidden">
                           <div className="w-full h-full bg-black" />
                         </div>
-                        <button 
-                          className="w-6 h-6 flex items-center justify-center text-gray-600 hover:text-black"
-                          aria-label="Change color"
-                        >
-                          <RefreshCw className="w-4 h-4" />
-                        </button>
                       </div>
 
                       {/* Quantity Controls */}
@@ -324,18 +313,37 @@ const Cart = () => {
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input 
                     type="checkbox" 
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
                     className="mt-1 w-4 h-4 border-gray-300 rounded"
                   />
                   <span className="text-xs text-gray-600">
-                    I agree to the Terms and Conditions
+                    I agree to the{' '}
+                    <Link 
+                      href="/terms" 
+                      target="_blank"
+                      className="underline hover:text-black transition-colors"
+                    >
+                      Terms and Conditions
+                    </Link>
                   </span>
                 </label>
               </div>
 
               {/* Continue Button */}
               <Link 
-                href="/checkout/review"
-                className="w-full block bg-black text-white text-center py-3 px-6 rounded text-sm font-[family-name:var(--font-nav)] uppercase tracking-wider hover:bg-gray-800 transition-colors"
+                href={agreedToTerms ? "/checkout/review" : "#"}
+                onClick={(e) => {
+                  if (!agreedToTerms) {
+                    e.preventDefault();
+                    alert('Please agree to the Terms and Conditions to continue.');
+                  }
+                }}
+                className={`w-full block text-center py-3 px-6 rounded text-sm font-[family-name:var(--font-nav)] uppercase tracking-wider transition-colors ${
+                  agreedToTerms 
+                    ? 'bg-black text-white hover:bg-gray-800' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
                 Continue
               </Link>

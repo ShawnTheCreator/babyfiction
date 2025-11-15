@@ -206,16 +206,16 @@ export default function TermsPage() {
               <p>For any questions regarding these Terms, please contact us at:</p>
               <ul className="space-y-2 pl-6">
                 <li>
-                  <strong>📧 Email:</strong>{' '}
-                  <a href="mailto:support@babyfictions.co.za" className="underline hover:opacity-70">
-                    support@babyfictions.co.za
+                  <strong> Email:</strong>{' '}
+                  <a href="mailto:babyfictions2021@gmail.com" className="underline hover:opacity-70">
+                    babyfictions2021@gmail.com
                   </a>
                 </li>
                 <li>
-                  <strong>📞 Phone:</strong> 705-742-3221
+                  <strong> Enquiries:</strong> +27 72 096 3819
                 </li>
                 <li>
-                  <strong>📍 Address:</strong> 152A Charlotte Street, Peterborough ON, South Africa
+                  <strong> WhatsApp:</strong> +27 84 848 8516
                 </li>
               </ul>
             </div>
