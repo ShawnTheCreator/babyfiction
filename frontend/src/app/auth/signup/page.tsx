@@ -7,8 +7,11 @@ import NextDynamic from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
 
-// Client-only reCAPTCHA to avoid SSR issues
-const ReCAPTCHA = NextDynamic(() => import('react-google-recaptcha'), { ssr: false });
+// Client-only reCAPTCHA to avoid SSR issues - properly typed
+const ReCAPTCHA = NextDynamic<import('react-google-recaptcha').ReCAPTCHAProps>(
+  () => import('react-google-recaptcha'),
+  { ssr: false }
+);
 
 function SignupInner() {
   const router = useRouter();
@@ -187,6 +190,21 @@ function SignupInner() {
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
+            </div>
+
+            <div className="mt-4">
+              {siteKey ? (
+                <ReCAPTCHA
+                  sitekey={siteKey}
+                  onChange={(token: string | null) => setRecaptchaToken(token || '')}
+                  onExpired={() => setRecaptchaToken('')}
+                  theme="dark"
+                />
+              ) : (
+                <div className="text-xs text-red-300">
+                  reCAPTCHA site key missing. Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY.
+                </div>
+              )}
             </div>
 
             {error && (

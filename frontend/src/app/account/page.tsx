@@ -112,6 +112,8 @@ function AccountDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaveMsg, setProfileSaveMsg] = useState<string>('');
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState({
@@ -137,7 +139,11 @@ function AccountDashboard() {
         ]);
 
         // Profile
-        setProfile(profileData?.data || profileData?.user || profileData);
+        const rawUser = profileData?.data || profileData?.user || profileData;
+        setProfile(rawUser ? {
+          ...rawUser,
+          name: [rawUser.firstName, rawUser.lastName].filter(Boolean).join(' ')
+        } : null);
 
         // Orders
         setOrders(
@@ -229,6 +235,45 @@ function AccountDashboard() {
   // ZAR currency formatter
   const formatZAR = (n: number) =>
     new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(n || 0);
+
+  const handleSaveProfile = async () => {
+    if (!profile) return;
+    setSavingProfile(true);
+    setProfileSaveMsg('');
+    try {
+      const name = (profile.name || '').trim();
+      const [firstName, ...restParts] = name.split(' ');
+      const lastName = restParts.join(' ');
+      const body = {
+        firstName: firstName || '',
+        lastName: lastName || '',
+        phone: profile.phone || '',
+        address: profile.address || undefined
+      };
+      const res: any = await fetchJson('/api/auth/profile', {
+        method: 'PUT',
+        body: JSON.stringify(body)
+      });
+      const updated = res?.user || res?.data || res;
+      setProfile(prev => ({
+        ...prev!,
+        name: [updated?.firstName, updated?.lastName].filter(Boolean).join(' ') || prev?.name || '',
+        phone: updated?.phone || prev?.phone || '',
+        address: updated?.address || prev?.address,
+        updatedAt: updated?.updatedAt || prev?.updatedAt || new Date().toISOString(),
+      }));
+      setProfileSaveMsg('Profile updated successfully');
+      // Dispatch an event so navbar counts or other components can react if needed
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('bf_profile_updated'));
+      }
+    } catch (err: any) {
+      console.error('Failed to update profile:', err);
+      setProfileSaveMsg(err?.message || 'Failed to update profile');
+    } finally {
+      setSavingProfile(false);
+    }
+  };
 
   // Loading skeleton for profile
   const ProfileSkeleton = () => (
@@ -1017,7 +1062,7 @@ function AccountDashboard() {
                           <Input 
                             id="name" 
                             value={profile?.name || ''} 
-                            onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
+                            onChange={(e) => setProfile(prev => ({ ...(prev as UserProfile), name: e.target.value }))}
                           />
                         </div>
                         <div>
@@ -1037,11 +1082,16 @@ function AccountDashboard() {
                           id="phone" 
                           type="tel" 
                           value={profile?.phone || ''} 
-                          onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
+                          onChange={(e) => setProfile(prev => ({ ...(prev as UserProfile), phone: e.target.value }))}
                         />
                       </div>
-                      <div className="pt-2">
-                        <Button type="button">Save Changes</Button>
+                      <div className="pt-2 flex items-center gap-3">
+                        <Button type="button" onClick={handleSaveProfile} disabled={savingProfile}>
+                          {savingProfile ? 'Saving...' : 'Save Changes'}
+                        </Button>
+                        {profileSaveMsg && (
+                          <span className="text-sm text-gray-600">{profileSaveMsg}</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1146,126 +1196,4 @@ function AccountDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">Email Notifications</p>
-                      <p className="text-sm text-gray-500">Order updates, promotions, and more</p>
-                    </div>
-                  </div>
-                  <Switch 
-                    checked={profile?.preferences?.emailNotifications !== false}
-                    onCheckedChange={(checked) => setProfile(prev => ({
-                      ...prev,
-                      preferences: { ...prev?.preferences, emailNotifications: checked }
-                    }))}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Bell className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">SMS Notifications</p>
-                      <p className="text-sm text-gray-500">Order and delivery updates</p>
-                    </div>
-                  </div>
-                  <Switch 
-                    checked={profile?.preferences?.smsNotifications === true}
-                    onCheckedChange={(checked) => setProfile(prev => ({
-                      ...prev,
-                      preferences: { ...prev?.preferences, smsNotifications: checked }
-                    }))}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-5 w-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium">Newsletter</p>
-                      <p className="text-sm text-gray-500">Product updates, offers, and more</p>
-                    </div>
-                  </div>
-                  <Switch 
-                    checked={profile?.preferences?.newsletter !== false}
-                    onCheckedChange={(checked) => setProfile(prev => ({
-                      ...prev,
-                      preferences: { ...prev?.preferences, newsletter: checked }
-                    }))}
-                  />
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-end space-x-2">
-              <Button variant="outline">Cancel</Button>
-              <Button>Save Changes</Button>
-            </CardFooter>
-          </Card>
-
-          <Card className="border-red-100">
-            <CardHeader>
-              <CardTitle className="text-red-700">Danger Zone</CardTitle>
-              <CardDescription>
-                These actions are irreversible. Proceed with caution.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="font-medium text-red-800">Delete Account</h3>
-                      <p className="text-sm text-red-700">
-                        Permanently delete your account and all associated data.
-                      </p>
-                    </div>
-                    <Button 
-                      variant="destructive" 
-                      className="mt-3 sm:mt-0"
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                          // Handle account deletion
-                          fetchJson('/api/users/me', {
-                            method: 'DELETE'
-                          })
-                            .then(() => {
-                              setAuthToken(null);
-                              window.location.href = '/';
-                            })
-                            .catch(console.error);
-                        }
-                      }}
-                    >
-                      Delete Account
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <h3 className="font-medium">Logout</h3>
-                      <p className="text-sm text-gray-500">
-                        Sign out of your account on this device.
-                      </p>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      className="mt-3 sm:mt-0"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
+                <div className="flex items-center justify-between p-

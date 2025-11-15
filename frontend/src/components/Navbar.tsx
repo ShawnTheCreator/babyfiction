@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ShoppingCart, Search, User, Menu, X, Heart, ChevronDown } from "lucide-react";
@@ -21,6 +21,23 @@ const Navbar = () => {
   const router = useRouter();
   const { user } = useCurrentUser();
   const [accountOpen, setAccountOpen] = useState(false);
+  const dropdownCloseTimeout = useRef<number | null>(null);
+
+  const openDropdown = (name: string) => {
+    if (dropdownCloseTimeout.current) {
+      clearTimeout(dropdownCloseTimeout.current);
+      dropdownCloseTimeout.current = null;
+    }
+    setActiveDropdown(name);
+  };
+
+  const scheduleCloseDropdown = () => {
+    if (dropdownCloseTimeout.current) clearTimeout(dropdownCloseTimeout.current);
+    dropdownCloseTimeout.current = window.setTimeout(() => {
+      setActiveDropdown(null);
+      dropdownCloseTimeout.current = null;
+    }, 120);
+  };
 
   const handleLogout = () => {
     try {
@@ -124,7 +141,7 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled 
           ? "bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-800" 
-          : "bg-white dark:bg-black"
+          : "bg-white dark:bg:black"
       }`}
     >
       <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
@@ -153,14 +170,14 @@ const Navbar = () => {
             <div
               key={`${link.path}-${link.name}`}
               className="relative group"
-              onMouseEnter={() => link.sublinks && setActiveDropdown(link.name)}
-              onMouseLeave={() => setActiveDropdown(null)}
+              onMouseEnter={() => link.sublinks && openDropdown(link.name)}
+              onMouseLeave={scheduleCloseDropdown}
             >
               <Link
                 href={link.path}
                 className={`px-4 py-2 text-sm font-semibold uppercase tracking-wide transition-colors duration-200 relative flex items-center gap-1.5 rounded ${
                   pathname.startsWith(link.path.split("?")[0]) 
-                    ? "text-white bg-black dark:text-black dark:bg-white" 
+                    ? "text-white bg-black dark:text:black dark:bg:white" 
                     : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
                 }`}
               >
@@ -170,7 +187,11 @@ const Navbar = () => {
               
               {/* Dropdown */}
               {link.sublinks && activeDropdown === link.name && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-black shadow-lg rounded border border-gray-200 dark:border-gray-800 py-2 z-50">
+                <div
+                  className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-black shadow-lg rounded border border-gray-200 dark:border-gray-800 py-2 z-50"
+                  onMouseEnter={() => openDropdown(link.name)}
+                  onMouseLeave={scheduleCloseDropdown}
+                >
                   {link.sublinks.map((sublink) => (
                     <Link
                       key={sublink.path}

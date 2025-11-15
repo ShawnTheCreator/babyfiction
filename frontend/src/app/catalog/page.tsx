@@ -55,6 +55,7 @@ function CatalogContent() {
   const category = searchParams.get('category') || '';
   const subcategory = searchParams.get('subcategory') || '';
   const searchQuery = searchParams.get('search') || '';
+  const [searchText, setSearchText] = useState(searchQuery);
 
   useEffect(() => {
     let active = true;
@@ -474,7 +475,6 @@ function CatalogContent() {
                category ? category : 
                'Products'}
             </h1>
-            
             {/* Mobile Filter Button */}
             <button
               onClick={() => setShowFilters(true)}
@@ -488,25 +488,57 @@ function CatalogContent() {
             </button>
           </div>
 
-          {/* Sort and Results Count */}
+          {/* Sort, Results Count, and Search */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <p className="text-sm text-gray-600">
               Showing {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
             </p>
-            
-            <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm text-gray-600">Sort by:</label>
-              <select
-                id="sort"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black"
-              >
-                <option value="new">New</option>
-                <option value="priceLow">Price: Low to High</option>
-                <option value="priceHigh">Price: High to Low</option>
-                <option value="name">Name: A to Z</option>
-              </select>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-end">
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort" className="text-sm text-gray-600">Sort by:</label>
+                <select
+                  id="sort"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black"
+                >
+                  <option value="new">New</option>
+                  <option value="priceLow">Price: Low to High</option>
+                  <option value="priceHigh">Price: High to Low</option>
+                  <option value="name">Name: A to Z</option>
+                </select>
+              </div>
+
+              {/* Product Search */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const q = (searchText || '').trim();
+                      const params = new URLSearchParams(Array.from(searchParams.entries()));
+                      if (q) params.set('search', q); else params.delete('search');
+                      router.push(`/catalog?${params.toString()}`);
+                    }
+                  }}
+                  placeholder="Find a product..."
+                  className="px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-black w-64"
+                />
+                <button
+                  onClick={() => {
+                    const q = (searchText || '').trim();
+                    const params = new URLSearchParams(Array.from(searchParams.entries()));
+                    if (q) params.set('search', q); else params.delete('search');
+                    router.push(`/catalog?${params.toString()}`);
+                  }}
+                  className="px-3 py-2 bg-black text-white rounded text-sm hover:bg-gray-800 transition-colors"
+                >
+                  Search
+                </button>
+              </div>
             </div>
           </div>
 

@@ -1952,10 +1952,6 @@ video {
   --tw-border-opacity: 1;
   border-color: rgb(233 213 255 / var(--tw-border-opacity, 1));
 }
-.border-red-100 {
-  --tw-border-opacity: 1;
-  border-color: rgb(254 226 226 / var(--tw-border-opacity, 1));
-}
 .border-red-200 {
   --tw-border-opacity: 1;
   border-color: rgb(254 202 202 / var(--tw-border-opacity, 1));
@@ -2203,6 +2199,10 @@ video {
 }
 .bg-yellow-500\/10 {
   background-color: rgb(234 179 8 / 0.1);
+}
+.bg-zinc-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(24 24 27 / var(--tw-bg-opacity, 1));
 }
 .bg-opacity-50 {
   --tw-bg-opacity: 0.5;

@@ -1,6 +1,7 @@
-// module imports and initiatePayFast
 import Cart from '../models/Cart.js';
 import { getPayFastProcessUrl, buildSignature, verifySignature } from '../services/payfast.js';
+import Order from '../models/Order.js';
+import User from '../models/User.js';
 
 export async function initiatePayFast(req, res, next) {
   try {
@@ -90,8 +91,8 @@ export async function handleITN(req, res) {
       return res.status(400).send('Invalid signature');
     }
 
-    // Sandbox acceptance; extend here to update orders by m_payment_id
-    console.log('PayFast ITN (sandbox):', {
+    // Log baseline ITN details for debugging
+    console.log('PayFast ITN:', {
       m_payment_id: payload.m_payment_id,
       pf_payment_id: payload.pf_payment_id,
       payment_status: payload.payment_status,
@@ -100,8 +101,100 @@ export async function handleITN(req, res) {
       amount_net: payload.amount_net,
     });
 
+    // Only act on successful payment
+    if (String(payload.payment_status).toUpperCase() === 'COMPLETE') {
+      try {
+        const mId = String(payload.m_payment_id || '');
+        const parts = mId.split('-');
+        // Expect m_payment_id format: BF-<userId>-<timestamp>
+        const userId = parts.length >= 3 ? parts[1] : null;
+
+        if (!userId) {
+          console.warn('ITN: Could not parse userId from m_payment_id:', mId);
+        } else {
+          const user = await User.findById(userId);
+          const cart = await Cart.findOne({ user: userId }).populate('items.product', 'name price images thumbnail');
+          const items = Array.isArray(cart?.items) ? cart.items : [];
+
+          if (user && items.length > 0) {
+            // Build order items
+            const orderItems = items.map((it) => {
+              const p = it?.product || {};
+              const img = p?.thumbnail || (Array.isArray(p?.images) ? p.images[0] : '');
+              return {
+                product: p?._id,
+                name: p?.name || 'Product',
+                price: typeof p?.price === 'number' ? p.price : 0,
+                quantity: it?.quantity || 1,
+                size: it?.size,
+                color: it?.color,
+                image: img || '',
+              };
+            });
+
+            // Calculate totals (mirror initiatePayFast)
+            const TAX_RATE = 0.15;
+            let subtotal = 0;
+            for (const it of orderItems) {
+              subtotal += (it.price || 0) * (it.quantity || 0);
+            }
+            const shipping = subtotal >= 3000 ? 0 : (subtotal > 0 ? 130 : 0);
+            const tax = subtotal * TAX_RATE;
+            const total = Math.round((subtotal + shipping + tax) * 100) / 100;
+
+            // Derive shipping address from user's profile, with safe fallbacks
+            const shippingAddress = {
+              firstName: user?.firstName || 'Customer',
+              lastName: user?.lastName || 'Customer',
+              company: '',
+              address: user?.address?.street || 'Unknown',
+              apartment: '',
+              city: user?.address?.city || 'Unknown',
+              state: user?.address?.state || 'Unknown',
+              zipCode: user?.address?.zipCode || '0000',
+              country: user?.address?.country || 'South Africa',
+              phone: user?.phone || '0000000000',
+            };
+
+            const order = await Order.create({
+              user: user._id,
+              items: orderItems,
+              shippingAddress,
+              billingAddress: { ...shippingAddress },
+              paymentInfo: {
+                method: 'payfast',
+                status: 'paid',
+                transactionId: String(payload.pf_payment_id || ''),
+                paidAt: new Date(),
+              },
+              pricing: {
+                subtotal,
+                tax,
+                shipping,
+                discount: 0,
+                total,
+              },
+              status: 'processing',
+              notes: 'Created via PayFast ITN (sandbox/production)',
+            });
+
+            // Clear the user's cart after successful order creation
+            await Cart.findOneAndDelete({ user: user._id });
+
+            console.log('Order created from PayFast ITN:', order._id);
+          } else {
+            console.warn('ITN: Missing user or empty cart for userId:', userId);
+          }
+        }
+      } catch (orderErr) {
+        console.error('ITN order creation error:', orderErr);
+        // Continue responding OK to PayFast to avoid retries, but log the error
+      }
+    }
+
     res.status(200).send('OK');
   } catch (err) {
+    console.error('ITN handler error:', err);
     res.status(500).send('Server error');
   }
 }
