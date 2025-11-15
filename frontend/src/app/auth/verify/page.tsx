@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { fetchJson, setAuthToken } from '@/lib/api';
 
-export default function VerifyPage() {
+export default function VerifyContent() {
   const router = useRouter();
   const params = useSearchParams();
   const mode = (params.get('mode') || 'login') as 'login' | 'signup';
@@ -17,20 +17,24 @@ export default function VerifyPage() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
     if (!email || !code) {
       setError('Email and PIN are required');
       return;
     }
+
     setLoading(true);
+
     try {
       const res: any = await fetchJson('/api/auth/verify-otp', {
         method: 'POST',
         body: JSON.stringify({ email, code, purpose: mode }),
       });
+
       const token = res?.token;
       if (!token) throw new Error('Verification failed');
       setAuthToken(token);
-      // Optional: fetch user and route by role
+
       try {
         const me: any = await fetchJson('/api/auth/me');
         const user = me?.data || me?.user || me;
@@ -39,6 +43,7 @@ export default function VerifyPage() {
       } catch {
         router.push('/');
       }
+
     } catch (err: any) {
       setError(err?.message || 'Failed to verify PIN');
     } finally {
@@ -54,6 +59,7 @@ export default function VerifyPage() {
         </div>
         <div className="absolute -top-10 -left-10 h-24 w-24 rounded-full bg-white/10 blur-xl" />
         <div className="absolute -bottom-10 -right-10 h-24 w-24 rounded-full bg-white/10 blur-xl" />
+
         <div className="rounded-2xl border border-white/10 bg-black/30 backdrop-blur-xl p-8 shadow-2xl">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold tracking-tight">Enter Verification PIN</h1>
@@ -61,6 +67,7 @@ export default function VerifyPage() {
               We sent a PIN to your email. Enter it below to {mode === 'signup' ? 'verify your account' : 'complete login'}.
             </p>
           </div>
+
           <form onSubmit={handleVerify} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-zinc-300">Email</label>
@@ -73,6 +80,7 @@ export default function VerifyPage() {
                 required
               />
             </div>
+
             <div>
               <label className="block text-sm font-medium text-zinc-300">PIN Code</label>
               <input
@@ -86,11 +94,13 @@ export default function VerifyPage() {
                 required
               />
             </div>
+
             {error && (
               <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
                 {error}
               </div>
             )}
+
             <button
               type="submit"
               disabled={loading}
@@ -98,6 +108,7 @@ export default function VerifyPage() {
             >
               {loading ? 'Verifying…' : 'Verify'}
             </button>
+
             <p className="mt-4 text-center text-sm text-zinc-400">
               Didn’t receive a PIN? Check spam or try again.
             </p>
