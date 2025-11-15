@@ -1,9 +1,9 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, Heart, ShoppingBag, User } from 'lucide-react';
 import { fetchJson, getAuthToken } from '@/lib/api';
 
 type Product = { 
@@ -21,13 +21,8 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
-  
-  // Refs for scroll animations
-  const heroRef = useRef<HTMLElement>(null);
-  const categoriesRef = useRef<HTMLElement>(null);
-  const collectionsRef = useRef<HTMLElement>(null);
-  const fashionRef = useRef<HTMLElement>(null);
   
   const heroImages = [
     '/assets/images/products/Product1.jpg',
@@ -57,37 +52,6 @@ export default function HomePage() {
     return () => { active = false; };
   }, []);
 
-  // Scroll animation effect
-  useEffect(() => {
-    const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-fade-in-up');
-        }
-      });
-    }, observerOptions);
-
-    const refs = [heroRef, categoriesRef, collectionsRef, fashionRef];
-    refs.forEach(ref => {
-      if (ref.current) {
-        observer.observe(ref.current);
-      }
-    });
-
-    return () => {
-      refs.forEach(ref => {
-        if (ref.current) {
-          observer.unobserve(ref.current);
-        }
-      });
-    };
-  }, []);
-
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
   };
@@ -96,75 +60,56 @@ export default function HomePage() {
     setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
   };
 
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to catalog page with search query
+      router.push(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchQuery.trim()) {
+        router.push(`/catalog?search=${encodeURIComponent(searchQuery.trim())}`);
+      }
+    }
+  };
 
   return (
     <>
-      <style jsx global>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes flipIn {
-          from {
-            transform: perspective(400px) rotateY(90deg);
-            opacity: 0;
-          }
-          to {
-            transform: perspective(400px) rotateY(0);
-            opacity: 1;
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fadeInUp 0.8s ease-out forwards;
-        }
-        
-        .flip-card {
-          perspective: 1000px;
-        }
-        
-        .flip-card-inner {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          transition: transform 0.6s;
-          transform-style: preserve-3d;
-        }
-        
-        .flip-card:hover .flip-card-inner {
-          transform: rotateY(180deg);
-        }
-        
-        .flip-card-front,
-        .flip-card-back {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-        }
-        
-        .flip-card-back {
-          transform: rotateY(180deg);
-        }
-        
-        section {
-          opacity: 0;
-        }
-      `}</style>
       <main className="relative bg-white">
+        {/* Search Bar - Mobile First */}
+        <div className="px-4 pt-4 sm:px-6 lg:absolute lg:top-[137px] lg:left-[50px] lg:z-10 lg:px-0 lg:pt-0">
+          <form onSubmit={handleSearch} className="relative w-full sm:max-w-md lg:w-[367px] h-[50px]">
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={handleSearchInputChange}
+              onKeyDown={handleSearchKeyDown}
+              className="w-full h-full bg-[#d9d9d9] border-none rounded-[2px] px-4 pr-[50px] sm:px-5 font-[family-name:var(--font-accent)] text-xs text-black/66 tracking-[2px] uppercase placeholder:text-black/66 outline-none"
+            />
+            <button
+              type="submit"
+              className="absolute right-[15px] top-1/2 -translate-y-1/2 text-black/66 hover:text-black transition-colors cursor-pointer"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </form>
+        </div>
+
         {/* Hero Section - Mobile First */}
-        <section ref={heroRef} className="relative px-4 pt-20 pb-12 sm:px-6 sm:pt-24 sm:pb-16 lg:min-h-[700px] lg:pt-[140px] lg:pb-[80px] lg:px-[50px]">
+        <section className="relative px-4 pt-8 pb-12 sm:px-6 sm:pt-12 sm:pb-16 lg:min-h-[800px] lg:pt-[200px] lg:px-[50px]">
           {/* Hero Text */}
-          <div className="mb-8 sm:mb-12 lg:absolute lg:top-[140px] lg:left-[50px] lg:mb-0">
-            <h1 className="font-[family-name:var(--font-headers)] text-[32px] leading-[28px] sm:text-[40px] sm:leading-[36px] lg:text-[48px] lg:leading-[40px] tracking-[2px] uppercase mb-6 sm:mb-8 lg:mb-[40px]">
+          <div className="mb-8 sm:mb-12 lg:absolute lg:top-[222px] lg:left-[50px] lg:mb-0">
+            <h1 className="font-[family-name:var(--font-headers)] text-[32px] leading-[28px] sm:text-[40px] sm:leading-[36px] lg:text-[48px] lg:leading-[40px] tracking-[2px] uppercase mb-8 sm:mb-10 lg:mb-[60px]">
               <span className="block">New</span>
               <span className="block">Collection</span>
             </h1>
@@ -175,25 +120,25 @@ export default function HomePage() {
           </div>
 
           {/* Product Gallery - Mobile: Stack, Desktop: Side by Side */}
-          <div className="flex flex-col gap-4 sm:gap-5 mb-8 lg:absolute lg:top-[180px] lg:right-[50px] lg:flex-row lg:mb-0">
+          <div className="flex flex-col gap-4 sm:gap-5 mb-8 lg:absolute lg:top-[257px] lg:right-[50px] lg:flex-row lg:mb-0">
             <div className="w-full h-[280px] sm:h-[350px] lg:w-[366px] lg:h-[376px] border border-[#d7d7d7] overflow-hidden">
               <img
                 src={heroImages[currentImageIndex]}
                 alt="Product"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
             </div>
             <div className="hidden sm:block w-full h-[350px] lg:w-[366px] lg:h-[376px] border border-[#d7d7d7] overflow-hidden">
               <img
                 src={heroImages[(currentImageIndex + 1) % heroImages.length]}
                 alt="Product"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
             </div>
           </div>
 
           {/* Gallery Navigation */}
-          <div className="flex gap-4 sm:gap-5 justify-center mb-8 lg:absolute lg:top-[580px] lg:left-1/2 lg:-translate-x-1/2 lg:mb-0">
+          <div className="flex gap-4 sm:gap-5 justify-center mb-8 lg:absolute lg:top-[656px] lg:left-1/2 lg:-translate-x-1/2 lg:mb-0">
             <button
               onClick={prevImage}
               className="w-10 h-10 border border-black/40 bg-transparent flex items-center justify-center hover:opacity-70 transition-opacity opacity-66"
@@ -211,7 +156,7 @@ export default function HomePage() {
           {/* Shop Button */}
           <Link
             href="/catalog"
-            className="bg-[#d9d9d9] w-full sm:w-[265px] h-10 flex items-center justify-between px-5 font-[family-name:var(--font-nav)] text-sm sm:text-base text-black hover:opacity-80 transition-opacity lg:absolute lg:bottom-[60px] lg:left-[50px]"
+            className="bg-[#d9d9d9] w-full sm:w-[265px] h-10 flex items-center justify-between px-5 font-[family-name:var(--font-nav)] text-sm sm:text-base text-black hover:opacity-80 transition-opacity lg:absolute lg:bottom-[40px] lg:left-[50px]"
           >
             <span>Go To Shop</span>
             <div className="w-[47.5px] h-3 flex items-center justify-center rotate-180 scale-y-[-1]">
@@ -221,7 +166,7 @@ export default function HomePage() {
         </section>
 
         {/* Categories Masonry Section - Mobile First */}
-        <section ref={categoriesRef} className="mt-8 px-4 sm:mt-12 sm:px-6 lg:mt-[80px] lg:px-[50px]">
+        <section className="mt-12 px-4 sm:mt-16 sm:px-6 lg:mt-[100px] lg:px-[50px]">
           <div className="max-w-[1340px] mx-auto grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {/* Caps - small */}
             <Link
@@ -318,7 +263,7 @@ export default function HomePage() {
         </section>
 
         {/* Collections Section - Mobile First */}
-        <section ref={collectionsRef} className="mt-8 px-4 sm:mt-12 sm:px-6 lg:mt-[80px] lg:px-[50px]">
+        <section className="mt-12 px-4 sm:mt-16 sm:px-6 lg:mt-[100px] lg:px-[50px]">
           <div className="mb-6 sm:mb-8">
             <h2 className="font-[family-name:var(--font-headers)] text-[32px] leading-[28px] sm:text-[40px] sm:leading-[36px] lg:text-[48px] lg:leading-[40px] tracking-[2px] uppercase mb-6 sm:mb-8">
               <span className="block">XXII</span>
@@ -338,34 +283,17 @@ export default function HomePage() {
               <Link
                 key={product.id}
                 href={`/product/${product.id}`}
-                className="group relative block"
+                className="group relative"
               >
-                <div className="flip-card border border-[#d7d7d7] h-[280px] sm:h-[320px] lg:h-[376px] overflow-hidden mb-4">
-                  <div className="flip-card-inner">
-                    <div className="flip-card-front">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flip-card-back bg-gradient-to-br from-black/90 to-black/70 flex items-center justify-center">
-                      <div className="text-center text-white p-6">
-                        <h3 className="font-[family-name:var(--font-headers)] text-xl mb-3 uppercase tracking-wider">
-                          {product.name}
-                        </h3>
-                        <p className="font-[family-name:var(--font-body)] text-sm mb-4 opacity-90">
-                          {product.description || 'Premium quality streetwear'}
-                        </p>
-                        <div className="text-2xl font-bold mb-4">
-                          R{product.price.toFixed(2)}
-                        </div>
-                        <div className="inline-block px-6 py-2 bg-white text-black font-semibold uppercase text-sm tracking-wider">
-                          View Details
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="border border-[#d7d7d7] h-[280px] sm:h-[320px] lg:h-[376px] overflow-hidden mb-4">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                 
                 </div>
                 <div>
                   <p className="font-[family-name:var(--font-nav)] text-xs text-black/66 mb-1">
@@ -374,14 +302,6 @@ export default function HomePage() {
                   <h3 className="font-[family-name:var(--font-nav)] text-sm capitalize mb-2">
                     {product.name}
                   </h3>
-                  {product.additional_images && product.additional_images.length > 0 && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-3 h-3 bg-white border-[0.5px] border-neutral-400" />
-                      <span className="font-[family-name:var(--font-body)] text-[10px] text-black/66">
-                        +{product.additional_images.length}
-                      </span>
-                    </div>
-                  )}
                   <p className="font-[family-name:var(--font-nav)] text-base">
                     R{product.price.toFixed(2)}
                   </p>
@@ -403,7 +323,7 @@ export default function HomePage() {
         </section>
 
         {/* Fashion Approach Section - Mobile First */}
-        <section ref={fashionRef} className="mt-8 px-4 pb-12 sm:mt-12 sm:px-6 sm:pb-16 lg:mt-[80px] lg:px-[50px] lg:pb-[80px]">
+        <section className="mt-12 px-4 pb-12 sm:mt-16 sm:px-6 sm:pb-16 lg:mt-[100px] lg:px-[50px] lg:pb-[100px]">
           <h2 className="font-[family-name:var(--font-accent)] text-[28px] leading-[24px] sm:text-[36px] sm:leading-[32px] lg:text-[48px] lg:leading-[40px] tracking-[2px] uppercase text-center mb-6 sm:mb-8">
             Our Approach to fashion design
           </h2>
@@ -411,8 +331,8 @@ export default function HomePage() {
             Step into our gallery — a showcase of bold expression and everyday luxury. Here, streetwear meets artistry, blending clean design with raw attitude. Each piece tells its own story — crafted for movement, confidence, and authenticity. Discover the looks that define the streets and inspire the culture.
           </p>
 
-          {/* Approach Gallery - Mobile: 2 cols, Tablet: 2 cols, Desktop: 4 cols staggered */}
-          <div className="max-w-[1340px] mx-auto grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-4">
+          {/* Approach Gallery - Mobile: 2 cols, Tablet: 2 cols, Desktop: 5 cols staggered */}
+          <div className="max-w-[1340px] mx-auto grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-5">
             {/* Item 1 */}
             <div className="border border-[#d7d7d7] h-[180px] sm:h-[250px] lg:h-[389px] overflow-hidden">
               <img
@@ -448,6 +368,19 @@ export default function HomePage() {
                 className="w-full h-full object-cover"
               />
             </div>
+
+            {/* View More Button - next to Item 4 on desktop */}
+            <Link
+              href="/gallery"
+              className="col-span-2 lg:col-span-1 border-2 border-[#d7d7d7] h-[60px] sm:h-[80px] lg:h-[389px] lg:w-[120px] lg:mt-[103px] overflow-hidden bg-[#f5f5f5] hover:bg-[#d9d9d9] transition-colors flex flex-col items-center justify-center group cursor-pointer"
+            >
+              <div className="flex flex-row lg:flex-col items-center gap-4">
+                <h3 className="font-[family-name:var(--font-logo)] text-[20px] sm:text-[24px] lg:text-[32px] font-normal uppercase tracking-[2px] group-hover:scale-105 transition-transform lg:[writing-mode:vertical-rl] lg:rotate-180">
+                  View More
+                </h3>
+                <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 opacity-70 lg:block" />
+              </div>
+            </Link>
           </div>
         </section>
       </main>

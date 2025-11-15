@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Heart, Plus, ChevronDown, ChevronUp } from "lucide-react";
+import { Heart, Plus, ChevronDown, ChevronUp, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { fetchJson, getAuthToken } from "@/lib/api";
 
@@ -152,6 +152,15 @@ const ProductDetail = () => {
   return (
     <div className="min-h-screen bg-white pt-[200px] pb-12 px-4 sm:px-6 lg:px-[50px]">
       <div className="max-w-[1400px] mx-auto">
+        {/* Back to Products Button */}
+        <Link 
+          href="/catalog" 
+          className="inline-flex items-center gap-2 mb-6 font-[family-name:var(--font-body)] text-sm text-gray-700 hover:text-black transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Products</span>
+        </Link>
+
         {/* Product Main Section */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8 lg:gap-[60px] mb-20">
           {/* Left: Product Images */}
