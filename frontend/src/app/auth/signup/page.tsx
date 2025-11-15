@@ -3,6 +3,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { fetchJson } from '@/lib/api';
+// ReCAPTCHA import removed – install react-google-recaptcha to restore
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +21,7 @@ function SignupInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
 
   // Password validation
   const passwordRequirements = {
@@ -35,6 +37,12 @@ function SignupInner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Client-side validation
+    if (!firstName || !lastName || !email || !password || !confirm) {
+      setError('All fields are required');
+      return;
+    }
     if (!isPasswordValid) {
       setError('Password does not meet requirements');
       return;
@@ -43,11 +51,16 @@ function SignupInner() {
       setError('Passwords do not match');
       return;
     }
+    if (!recaptchaToken) {
+      setError('Please complete reCAPTCHA');
+      return;
+    }
+
     setLoading(true);
     try {
       await fetchJson('/api/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ firstName, lastName, email, password }),
+        body: JSON.stringify({ firstName, lastName, email, password, recaptchaToken }),
       });
       // Route to PIN verification step
       router.push(`/auth/verify?mode=signup&email=${encodeURIComponent(email)}`);
@@ -182,7 +195,16 @@ function SignupInner() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={
+                loading ||
+                !firstName ||
+                !lastName ||
+                !email ||
+                !password ||
+                !confirm ||
+                !isPasswordValid ||
+                !recaptchaToken
+              }
               className="w-full rounded-lg bg-white text-black py-2.5 font-medium shadow hover:bg-zinc-100 disabled:opacity-50"
             >
               {loading ? 'Creating account…' : 'Create account'}

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { fetchJson, setAuthToken } from '@/lib/api';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,16 +13,36 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Client-side validation
+    if (!email || !password) {
+      setError('Email and password are required');
+      return;
+    }
+    if (!recaptchaToken) {
+      setError('Please complete reCAPTCHA');
+      return;
+    }
+
     setLoading(true);
     try {
       const loginRes: any = await fetchJson('/api/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaToken }),
       });
+
+      // Step verification: handle OTP-first response
+      if (loginRes?.otpSent) {
+        router.push(`/auth/verify?mode=login&email=${encodeURIComponent(email)}`);
+        return;
+      }
+
+      // Token-based flow
       const token = loginRes?.token;
       if (token) {
         setAuthToken(token);
@@ -73,23 +94,20 @@ export default function LoginPage() {
           const role = user?.role;
           router.push(role === 'admin' ? '/admin' : '/');
         } catch {
-          // Fallback: if /me fails, go home
           router.push('/');
           return;
         }
-        if (loginRes?.otpSent) {
-          // Step verification: ask for PIN
-          router.push(`/auth/verify?mode=login&email=${encodeURIComponent(email)}`);
-          return;
-        }
-        throw new Error('Unexpected login response');
-      } catch (err: any) {
-        const status = (err && typeof err === 'object' && 'status' in err) ? (err as any).status : undefined;
-        if (status === 401) setError('Invalid email or password');
-        else setError(err?.message || 'Login failed');
-      } finally {
-        setLoading(false);
+        return;
       }
+
+      throw new Error('Unexpected login response');
+    } catch (err: any) {
+      const status = (err && typeof err === 'object' && 'status' in err) ? (err as any).status : undefined;
+      // Show granular message from backend when available
+      const msg = err?.message || (status === 401 ? 'Invalid email or password' : 'Login failed');
+      setError(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,6 +165,15 @@ export default function LoginPage() {
               </Link>
             </div>
 
+            {/* Google reCAPTCHA v2 */}
+            <div className="mt-2">
+              <ReCAPTCHA
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+                onChange={(token: string | null) => setRecaptchaToken(token || '')}
+                theme="dark"
+              />
+            </div>
+
             {error && (
               <div className="rounded-md border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
                 {error}
@@ -155,7 +182,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !email || !password || !recaptchaToken}
               className="w-full rounded-lg bg-white text-black py-2.5 font-medium shadow hover:bg-zinc-100 disabled:opacity-50"
             >
               {loading ? 'Signing in…' : 'Sign in'}

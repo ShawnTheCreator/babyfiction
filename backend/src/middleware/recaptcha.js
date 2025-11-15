@@ -176,7 +176,6 @@ export const verifyRecaptchaV2 = async (token) => {
   }
 };
 
-// v2 middleware
 export const recaptchaV2Middleware = () => {
   return async (req, res, next) => {
     try {

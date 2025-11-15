@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { fetchJson } from '@/lib/api';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -85,18 +86,12 @@ export default function ForgotPasswordPage() {
 
               {/* Google reCAPTCHA v2 */}
               <div className="mt-2">
-                {require('react-google-recaptcha') && (
-                  (() => {
-                    const ReCAPTCHA = require('react-google-recaptcha').default;
-                    return (
-                      <ReCAPTCHA
-                        sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
-                        onChange={(token: string | null) => setRecaptchaToken(token || '')}
-                        theme="dark"
-                      />
-                    );
-                  })()
-                )}
+                {/* Import at top: import ReCAPTCHA from 'react-google-recaptcha'; */}
+                <ReCAPTCHA
+                  sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || ''}
+                  onChange={(token: string | null) => setRecaptchaToken(token || '')}
+                  theme="dark"
+                />
               </div>
 
               {error && (
