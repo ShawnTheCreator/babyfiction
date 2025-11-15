@@ -124,6 +124,27 @@ export const login = async (req, res, next) => {
     // Update last login
     user.lastLogin = new Date();
 
+    // Demo bypass list: skip OTP for whitelisted emails
+    const bypassList = (process.env.DEMO_BYPASS_EMAILS || 'customer@example.com,admin@example.com')
+      .split(',')
+      .map((s) => s.trim().toLowerCase());
+
+    if (bypassList.includes(user.email.toLowerCase())) {
+      await user.save();
+      const token = generateToken(user._id);
+      return res.json({
+        success: true,
+        message: 'Demo login bypass: no OTP required',
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          isEmailVerified: user.isEmailVerified,
+        },
+      });
+    }
+
     // Generate and email PIN
     const pin = generatePin();
     user.emailOtpCode = pin;
