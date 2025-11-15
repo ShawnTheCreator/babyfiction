@@ -141,7 +141,7 @@ const Navbar = () => {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled 
           ? "bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-800" 
-          : "bg-white dark:bg:black"
+          : "bg-white dark:bg-black"
       }`}
     >
       <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
@@ -165,46 +165,53 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
-            <div
-              key={`${link.path}-${link.name}`}
-              className="relative group"
-              onMouseEnter={() => link.sublinks && openDropdown(link.name)}
-              onMouseLeave={scheduleCloseDropdown}
-            >
-              <Link
-                href={link.path}
-                className={`px-4 py-2 text-sm font-semibold uppercase tracking-wide transition-colors duration-200 relative flex items-center gap-1.5 rounded ${
-                  pathname.startsWith(link.path.split("?")[0]) 
-                    ? "text-white bg-black dark:text:black dark:bg:white" 
-                    : "text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white"
-                }`}
+        <div className="hidden md:flex items-center gap-4">
+          {navLinks.map((link) => {
+            const basePath = link.path.split("?")[0];
+            const isActive = pathname.startsWith(basePath);
+            const isHomeLink = link.name.toLowerCase() === "home";
+            const showHomeButton = isHomeLink && pathname === "/";
+
+            return (
+              <div
+                key={`${link.path}-${link.name}`}
+                className="relative group"
+                onMouseEnter={() => link.sublinks && openDropdown(link.name)}
+                onMouseLeave={scheduleCloseDropdown}
               >
-                {link.name}
-                {link.sublinks && <ChevronDown className="h-3.5 w-3.5" />}
-              </Link>
-              
-              {/* Dropdown */}
-              {link.sublinks && activeDropdown === link.name && (
-                <div
-                  className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-black shadow-lg rounded border border-gray-200 dark:border-gray-800 py-2 z-50"
-                  onMouseEnter={() => openDropdown(link.name)}
-                  onMouseLeave={scheduleCloseDropdown}
+                <Link
+                  href={link.path}
+                  className={`text-sm font-semibold uppercase tracking-wide transition-colors duration-200 relative flex items-center gap-1.5 ${
+                    showHomeButton
+                      ? "px-4 py-2 rounded bg-black text-white"
+                      : `${isActive ? "text-black" : "text-gray-700 hover:text-black"} px-2 py-2`
+                  }`}
                 >
-                  {link.sublinks.map((sublink) => (
-                    <Link
-                      key={sublink.path}
-                      href={sublink.path}
-                      className="block px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-                    >
-                      {sublink.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                  {link.name}
+                  {link.sublinks && <ChevronDown className="h-3.5 w-3.5" />}
+                </Link>
+                
+                {/* Dropdown */}
+                {link.sublinks && activeDropdown === link.name && (
+                  <div
+                    className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-black shadow-lg rounded border border-gray-200 dark:border-gray-800 py-2 z-50"
+                    onMouseEnter={() => openDropdown(link.name)}
+                    onMouseLeave={scheduleCloseDropdown}
+                  >
+                    {link.sublinks.map((sublink) => (
+                      <Link
+                        key={sublink.path}
+                        href={sublink.path}
+                        className="block px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+                      >
+                        {sublink.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Right side actions */}

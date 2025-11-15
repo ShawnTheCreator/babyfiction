@@ -453,9 +453,9 @@ function CatalogContent() {
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-28">
       {/* Header Section - Mobile First */}
-      <div className="border-b bg-white sticky top-16 z-20">
+      <div className="border-b bg-white">
         <div className="px-4 sm:px-6 lg:px-[50px] py-4">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
@@ -467,7 +467,6 @@ function CatalogContent() {
                'Products'}
             </span>
           </div>
-
           {/* Title and Filter Button */}
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl sm:text-3xl font-bold uppercase" style={{ fontFamily: 'var(--font-headers)' }}>
@@ -478,7 +477,7 @@ function CatalogContent() {
             {/* Mobile Filter Button */}
             <button
               onClick={() => setShowFilters(true)}
-              className="lg:hidden flex items-center gap-2 px-4 py-2 border border-black rounded hover:bg-black hover:text-white transition-colors relative"
+              className="lg:hidden flex items-center gap-2 px-3 py-2 rounded text-gray-700 hover:bg-gray-100 transition-colors relative"
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span className="text-sm font-medium">Filters</span>
@@ -721,7 +720,7 @@ function CatalogContent() {
                         e.stopPropagation();
                         toggleWishlist(product._id);
                       }}
-                      className="absolute top-3 right-3 z-10 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
+                      className="absolute top-3 right-3 z-20 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
                     >
                       <Heart
                         className={`w-5 h-5 ${

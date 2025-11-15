@@ -114,6 +114,14 @@ function AccountDashboard() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileSaveMsg, setProfileSaveMsg] = useState<string>('');
+  
+  // Auto-clear the save message after a few seconds
+  useEffect(() => {
+    if (!profileSaveMsg) return;
+    const t = setTimeout(() => setProfileSaveMsg(''), 3000);
+    return () => clearTimeout(t);
+  }, [profileSaveMsg]);
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState({
@@ -131,7 +139,6 @@ function AccountDashboard() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Use shared helper (adds Authorization with bf_token and base URL)
         const [profileData, ordersData, wishlistData]: any = await Promise.all([
           fetchJson('/api/auth/me'),
           fetchJson('/api/orders'),
@@ -187,16 +194,13 @@ function AccountDashboard() {
   // Move item to cart from wishlist
   const moveToCart = async (productId: string) => {
     try {
-      // Add to cart
       await fetchJson('/api/cart', {
         method: 'POST',
         body: JSON.stringify({ productId, quantity: 1 }),
       });
 
-      // Remove from wishlist
       await fetchJson(`/api/wishlist/${productId}`, { method: 'DELETE' });
 
-      // Update local wishlist state and redirect to cart
       setWishlist(prev => prev.filter(item => item.product._id !== productId));
       router.push('/cart');
     } catch (err: any) {
@@ -263,7 +267,6 @@ function AccountDashboard() {
         updatedAt: updated?.updatedAt || prev?.updatedAt || new Date().toISOString(),
       }));
       setProfileSaveMsg('Profile updated successfully');
-      // Dispatch an event so navbar counts or other components can react if needed
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('bf_profile_updated'));
       }
@@ -352,65 +355,35 @@ function AccountDashboard() {
         className="space-y-8"
         onValueChange={(value) => setActiveTab(value)}
       >
-        {/* Tabs Navigation */}
-        <div className="border-b border-gray-200">
-          <TabsList className="-mb-px flex space-x-8" aria-label="Account navigation">
-            <TabsTrigger 
-              value="overview" 
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'overview' 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <User className="mr-2 h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="orders" 
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'orders' 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              My Orders
-              {orders.length > 0 && (
-                <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {orders.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="wishlist" 
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'wishlist' 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Heart className="mr-2 h-4 w-4" />
-              Wishlist
-              {wishlist.length > 0 && (
-                <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                  {wishlist.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger 
-              value="settings" 
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'settings' 
-                  ? 'border-blue-500 text-blue-600' 
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        {/* Tabs Navigation - FIXED */}
+        <TabsList className="w-full justify-start border-b">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4" />
+            My Orders
+            {orders.length > 0 && (
+              <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {orders.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="wishlist" className="flex items-center gap-2">
+            <Heart className="h-4 w-4" />
+            Wishlist
+            {wishlist.length > 0 && (
+              <span className="ml-2 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {wishlist.length}
+              </span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </TabsTrigger>
+        </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-8">
@@ -554,8 +527,8 @@ function AccountDashboard() {
                       {orders.slice(0, 5).map((order) => (
                         <tr key={order._id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
-                              #{order.orderNumber || order._id.slice(-6)}
-                            </td>
+                            #{order.orderNumber || order._id.slice(-6)}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {formatDate(order.createdAt)}
                           </td>
@@ -611,7 +584,7 @@ function AccountDashboard() {
                         setWishlist(
                           Array.isArray((data as any)?.items) ? (data as any).items :
                           Array.isArray(data) ? data :
-(data as any)?.wishlist?.items || []
+                          (data as any)?.wishlist?.items || []
                         );
                         setError(prev => ({ ...prev, wishlist: '' }));
                       })
@@ -652,7 +625,6 @@ function AccountDashboard() {
                             className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
                             onClick={(e) => {
                               e.preventDefault();
-                              // Remove from wishlist
                               fetchJson(`/api/wishlist/${item.product._id}`, { method: 'DELETE' })
                                 .then(() => {
                                   setWishlist(prev => prev.filter(i => i._id !== item._id));
@@ -809,8 +781,8 @@ function AccountDashboard() {
                               {order.items.reduce((sum, item) => sum + item.quantity, 0)} items
                             </p>
                             <p className="mt-1 text-sm font-medium text-gray-900">
-                                Total: {formatZAR(order.total ?? 0)}
-                              </p>
+                              Total: {formatZAR(order.total ?? 0)}
+                            </p>
                           </div>
                           <div className="mt-4 sm:mt-0 space-x-3">
                             <Button 
@@ -857,7 +829,6 @@ function AccountDashboard() {
                     size="sm"
                     disabled={wishlist.length === 0}
                     onClick={() => {
-                      // Move all to cart
                       const movePromises = wishlist
                         .filter(item => item.product.countInStock > 0)
                         .map(item => 
@@ -872,11 +843,9 @@ function AccountDashboard() {
                       
                       Promise.all(movePromises)
                         .then(movedIds => {
-                          // Remove moved items from wishlist
                           setWishlist(prev => 
                             prev.filter(item => !movedIds.includes(item.product._id))
                           );
-                          // Redirect to cart
                           router.push('/cart');
                         })
                         .catch(console.error);
@@ -941,7 +910,6 @@ function AccountDashboard() {
                             className="h-8 w-8 rounded-full bg-white/80 backdrop-blur-sm hover:bg-white"
                             onClick={(e) => {
                               e.preventDefault();
-                              // Remove from wishlist
                               fetchJson(`/api/wishlist/${item.product._id}`, { method: 'DELETE' })
                                 .then(() => {
                                   setWishlist(prev => prev.filter(i => i._id !== item._id));
@@ -1025,7 +993,13 @@ function AccountDashboard() {
                     setLoading(prev => ({ ...prev, profile: true }));
                     fetchJson('/api/auth/me')
                       .then((data) => {
-                        setProfile((data as any)?.data || (data as any)?.user || data);
+                        const raw = (data as any)?.data || (data as any)?.user || data;
+                        setProfile(
+                          raw ? { 
+                            ...raw, 
+                            name: [raw.firstName, raw.lastName].filter(Boolean).join(' ')
+                          } : null
+                        );
                         setError(prev => ({ ...prev, profile: '' }));
                       })
                       .catch(() => setError(prev => ({ ...prev, profile: 'Failed to load profile' })))
@@ -1087,7 +1061,14 @@ function AccountDashboard() {
                       </div>
                       <div className="pt-2 flex items-center gap-3">
                         <Button type="button" onClick={handleSaveProfile} disabled={savingProfile}>
-                          {savingProfile ? 'Saving...' : 'Save Changes'}
+                          {savingProfile ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Saving...
+                            </>
+                          ) : (
+                            'Save Changes'
+                          )}
                         </Button>
                         {profileSaveMsg && (
                           <span className="text-sm text-gray-600">{profileSaveMsg}</span>
@@ -1196,4 +1177,105 @@ function AccountDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Bell className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">Email Notifications</p>
+                      <p className="text-sm text-gray-500">Receive order updates via email</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={profile?.preferences?.emailNotifications ?? true}
+                    onCheckedChange={(checked) => {
+                      setProfile(prev => prev ? {
+                        ...prev,
+                        preferences: {
+                          ...prev.preferences,
+                          emailNotifications: checked,
+                          smsNotifications: prev.preferences?.smsNotifications ?? false,
+                          newsletter: prev.preferences?.newsletter ?? false
+                        }
+                      } : null);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Phone className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">SMS Notifications</p>
+                      <p className="text-sm text-gray-500">Receive order updates via SMS</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={profile?.preferences?.smsNotifications ?? false}
+                    onCheckedChange={(checked) => {
+                      setProfile(prev => prev ? {
+                        ...prev,
+                        preferences: {
+                          ...prev.preferences,
+                          emailNotifications: prev.preferences?.emailNotifications ?? true,
+                          smsNotifications: checked,
+                          newsletter: prev.preferences?.newsletter ?? false
+                        }
+                      } : null);
+                    }}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">Newsletter</p>
+                      <p className="text-sm text-gray-500">Receive promotional emails and offers</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={profile?.preferences?.newsletter ?? false}
+                    onCheckedChange={(checked) => {
+                      setProfile(prev => prev ? {
+                        ...prev,
+                        preferences: {
+                          ...prev.preferences,
+                          emailNotifications: prev.preferences?.emailNotifications ?? true,
+                          smsNotifications: prev.preferences?.smsNotifications ?? false,
+                          newsletter: checked
+                        }
+                      } : null);
+                    }}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-red-200">
+            <CardHeader>
+              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <CardDescription>
+                Irreversible actions for your account.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                  <div>
+                    <p className="font-medium text-red-900">Log Out</p>
+                    <p className="text-sm text-red-700">Sign out of your account</p>
+                  </div>
+                  <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-100" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log Out
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
