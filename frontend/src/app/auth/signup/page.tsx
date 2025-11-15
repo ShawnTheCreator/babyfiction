@@ -3,9 +3,12 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { fetchJson } from '@/lib/api';
-// ReCAPTCHA import removed – install react-google-recaptcha to restore
+import NextDynamic from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
+
+// Client-only reCAPTCHA to avoid SSR issues
+const ReCAPTCHA = NextDynamic(() => import('react-google-recaptcha'), { ssr: false });
 
 function SignupInner() {
   const router = useRouter();
@@ -22,6 +25,7 @@ function SignupInner() {
   const [error, setError] = useState<string | null>(null);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string>('');
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
 
   // Password validation
   const passwordRequirements = {
@@ -31,7 +35,6 @@ function SignupInner() {
     hasNumber: /[0-9]/.test(password),
     hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
   };
-
   const isPasswordValid = Object.values(passwordRequirements).every(Boolean);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,7 +65,6 @@ function SignupInner() {
         method: 'POST',
         body: JSON.stringify({ firstName, lastName, email, password, recaptchaToken }),
       });
-      // Route to PIN verification step
       router.push(`/auth/verify?mode=signup&email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err?.message || 'Signup failed');

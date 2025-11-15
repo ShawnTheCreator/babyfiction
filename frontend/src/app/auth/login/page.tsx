@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 import { fetchJson, setAuthToken } from '@/lib/api';
-import ReCAPTCHA from 'react-google-recaptcha';
+import NextDynamic from 'next/dynamic';
+const ReCAPTCHA = NextDynamic(() => import('react-google-recaptcha'), { ssr: false });
 
 export default function LoginPage() {
   const router = useRouter();
