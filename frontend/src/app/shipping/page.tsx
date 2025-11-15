@@ -45,7 +45,7 @@ export default function ShippingPolicy() {
             <div className="flex items-center gap-3 mb-3">
               <Truck className="w-6 h-6 text-black" />
               <h3 className="font-[family-name:var(--font-nav)] text-base font-semibold uppercase tracking-wider">
-                Delivery Time
+                Delivery Time:
               </h3>
             </div>
             <p className="font-[family-name:var(--font-body)] text-sm text-gray-600">
