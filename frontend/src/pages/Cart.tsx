@@ -334,7 +334,7 @@ const Cart = () => {
 
               {/* Continue Button */}
               <Link 
-                href="/checkout"
+                href="/checkout/review"
                 className="w-full block bg-black text-white text-center py-3 px-6 rounded text-sm font-[family-name:var(--font-nav)] uppercase tracking-wider hover:bg-gray-800 transition-colors"
               >
                 Continue
