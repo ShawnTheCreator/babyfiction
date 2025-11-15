@@ -69,7 +69,7 @@ export default function VerifyClient({
               <label className="block text-sm font-medium text-zinc-300">Email</label>
               <input
                 type="email"
-                className="mt-2 w-full rounded-lg border border-white/10 bg白/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -82,7 +82,7 @@ export default function VerifyClient({
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
-                className="mt-2 w-full rounded-lg border border白/10 bg白/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
+                className="mt-2 w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-white placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none"
                 placeholder="123456"
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/[^\d]/g, ''))}

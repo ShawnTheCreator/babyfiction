@@ -1,4 +1,3 @@
-"use client";
 // imports and dynamic settings
 import { Suspense } from 'react';
 export const dynamic = 'force-dynamic';
