@@ -78,10 +78,12 @@ const Navbar = () => {
   }, []);
 
   const menuLinks = [
+    { name: "Collections", path: "/catalog" },
     { name: "Featured", path: "/catalog" },
     { name: "Hoodies", path: "/catalog?category=hoodies" },
     { name: "T-shirts", path: "/catalog?category=shirts" },
     { name: "Hats", path: "/catalog?category=hats" },
+    { name: "Gallery", path: "/gallery" },
     { name: "About Us", path: "/about" },
     { name: "Contact Us", path: "/contact" },
   ];
@@ -89,7 +91,6 @@ const Navbar = () => {
   const mainNavLinks = [
     { name: "Home", path: "/" },
     { name: "Collections", path: "/catalog" },
-    { name: "Gallery", path: "/gallery" },
   ];
 
   const isAdmin = user?.role === 'admin';
@@ -130,6 +131,13 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              {/* Gallery link - only show on xl screens (1280px+) */}
+              <Link
+                href="/gallery"
+                className="hidden xl:block text-base lg:text-lg font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors"
+              >
+                Gallery
+              </Link>
             </div>
           </div>
 
@@ -142,19 +150,20 @@ const Navbar = () => {
           </Link>
 
           {/* Right: Action Icons */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
             {/* Cart Icon - Hidden for Admin */}
             {!isAdmin && (
               <Link
                 href="/cart"
-                className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
+                className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
                 aria-label="Shopping Cart"
               >
                 <Image
                   src="/assets/images/icons/navbar/shopping-cart-icon.svg"
                   alt="Cart"
-                  width={28}
-                  height={28}
+                  width={24}
+                  height={24}
+                  className="sm:w-7 sm:h-7"
                 />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center font-[family-name:var(--font-body)] font-medium">
@@ -164,11 +173,11 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* Wishlist Icon - Hidden for Admin */}
+            {/* Wishlist Icon - Hidden for Admin and Mobile */}
             {!isAdmin && (
               <Link
                 href="/wishlist"
-                className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
+                className="hidden sm:flex w-12 h-12 items-center justify-center hover:opacity-70 transition-opacity relative"
                 aria-label="Wishlist"
               >
                 <Image
@@ -185,8 +194,8 @@ const Navbar = () => {
               </Link>
             )}
 
-            {/* Profile Icon with Dropdown */}
-            <div ref={profileRef} className="relative">
+            {/* Profile Icon with Dropdown - Hidden on Mobile */}
+            <div ref={profileRef} className="relative hidden sm:block">
               <button
                 onMouseEnter={() => setProfileOpen(true)}
                 className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity"
@@ -241,13 +250,22 @@ const Navbar = () => {
                       </button>
                     </>
                   ) : (
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setProfileOpen(false)}
-                      className="block px-4 py-2 text-sm font-[family-name:var(--font-body)] text-gray-700 hover:bg-gray-100 transition-colors"
-                    >
-                      Login
-                    </Link>
+                    <>
+                      <Link
+                        href="/auth/login"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm font-[family-name:var(--font-body)] text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        href="/auth/signup"
+                        onClick={() => setProfileOpen(false)}
+                        className="block px-4 py-2 text-sm font-[family-name:var(--font-body)] text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        Sign Up
+                      </Link>
+                    </>
                   )}
                 </div>
               )}
@@ -261,7 +279,16 @@ const Navbar = () => {
         <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg animate-slide-in">
           <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col gap-4">
-              {menuLinks.map((link) => (
+              {/* Collections - Only on mobile */}
+              <Link
+                href="/catalog"
+                onClick={() => setMobileOpen(false)}
+                className="md:hidden text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+              >
+                Collections
+              </Link>
+              
+              {menuLinks.filter(link => link.name !== 'Collections').map((link) => (
                 <Link
                   key={link.path}
                   href={link.path}
@@ -271,6 +298,65 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+              
+              {/* Mobile Auth Links - Only show on mobile (sm: hidden) */}
+              <div className="sm:hidden border-t border-gray-200 pt-4 mt-2 flex flex-col gap-3">
+                {user ? (
+                  <>
+                    <Link
+                      href={user.role === 'admin' ? '/admin' : '/account'}
+                      onClick={() => setMobileOpen(false)}
+                      className="text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+                    >
+                      {user.role === 'admin' ? 'Dashboard' : 'My Account'}
+                    </Link>
+                    {user.role === 'driver' && (
+                      <Link
+                        href="/driver"
+                        onClick={() => setMobileOpen(false)}
+                        className="text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+                      >
+                        Driver Portal
+                      </Link>
+                    )}
+                    {!isAdmin && (
+                      <Link
+                        href="/wishlist"
+                        onClick={() => setMobileOpen(false)}
+                        className="text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+                      >
+                        Wishlist
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setMobileOpen(false);
+                      }}
+                      className="text-left text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+                    >
+                      Log Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/auth/signup"
+                      onClick={() => setMobileOpen(false)}
+                      className="text-base font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors py-2"
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
