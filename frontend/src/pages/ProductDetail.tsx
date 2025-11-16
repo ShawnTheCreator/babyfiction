@@ -15,6 +15,7 @@ const ProductDetail = () => {
   const [selectedColor, setSelectedColor] = useState(0);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   type Product = {
     id: string;
@@ -167,7 +168,9 @@ const ProductDetail = () => {
           <div className="order-1 lg:order-1">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_80px] gap-5">
               {/* Main Image */}
-              <div className="order-1 lg:order-1 w-full max-w-[600px] border border-[#d9d9d9] rounded bg-gray-50">
+              <div className="order-1 lg:order-1 w-full max-w-[600px] border border-[#d9d9d9] rounded bg-gray-50 cursor-pointer"
+                onClick={() => setLightboxOpen(true)}
+              >
                 <img
                   src={product.images[selectedImage] || '/assets/images/products/placeholder.jpg'}
                   alt={product.name}
@@ -496,6 +499,61 @@ const ProductDetail = () => {
           </div>
         )}
       </div>
+
+      {/* Lightbox Modal */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div className="relative w-full h-full max-w-6xl max-h-[90vh]">
+            <img
+              src={product.images[selectedImage] || '/assets/images/products/placeholder.jpg'}
+              alt={product.name}
+              className="w-full h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          {/* Image Navigation */}
+          {product.images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage((prev) => (prev > 0 ? prev - 1 : product.images.length - 1));
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+                aria-label="Previous image"
+              >
+                <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage((prev) => (prev < product.images.length - 1 ? prev + 1 : 0));
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 transition-colors"
+                aria-label="Next image"
+              >
+                <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

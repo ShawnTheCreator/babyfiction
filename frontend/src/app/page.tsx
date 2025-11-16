@@ -33,7 +33,7 @@ export default function HomePage() {
     let active = true;
     (async () => {
       try {
-        const res: any = await fetchJson('/api/products/featured?limit=3');
+        const res: any = await fetchJson('/api/products/featured');
         const list = Array.isArray(res?.products) ? res.products : [];
         const mapped: Product[] = list.map((p: any) => ({
           id: p._id,
@@ -43,13 +43,53 @@ export default function HomePage() {
           category: p.category,
           additional_images: p.images || [],
         }));
-        if (active) setProducts(mapped);
+        
+        // If more than 3 products, randomly select 3
+        let finalProducts = mapped;
+        if (mapped.length > 3) {
+          const shuffled = [...mapped].sort(() => Math.random() - 0.5);
+          finalProducts = shuffled.slice(0, 3);
+        }
+        
+        if (active) setProducts(finalProducts);
       } catch {
       } finally {
         if (active) setLoading(false);
       }
     })();
     return () => { active = false; };
+  }, []);
+
+  // Auto-scroll effect to hide navbar padding
+  useEffect(() => {
+    // Only apply on desktop (width > 768px)
+    const isDesktop = () => window.innerWidth > 768;
+    
+    const handleScroll = () => {
+      if (!isDesktop()) return;
+      
+      const scrollTop = window.scrollY;
+      // If user scrolls to top (within 50px), smoothly scroll down to hide whitespace
+      if (scrollTop < 50 && scrollTop > 0) {
+        window.scrollTo({
+          top: 96, // Height of navbar (24 * 4 = 96px for h-24)
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    // Initial scroll on page load to hide whitespace (desktop only)
+    if (isDesktop() && window.scrollY === 0) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: 96,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const nextImage = () => {
