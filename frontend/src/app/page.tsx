@@ -1,7 +1,8 @@
+// Top imports of HomePage component
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, Heart, ShoppingBag, User } from 'lucide-react';
 import { fetchJson, getAuthToken } from '@/lib/api';
@@ -60,38 +61,6 @@ export default function HomePage() {
     return () => { active = false; };
   }, []);
 
-  // Removed the auto-scroll effect that was masking top whitespace
-  useEffect(() => {
-    // Only apply on desktop (width > 768px)
-    const isDesktop = () => window.innerWidth > 768;
-    
-    const handleScroll = () => {
-      if (!isDesktop()) return;
-      
-      const scrollTop = window.scrollY;
-      // If user scrolls to top (within 50px), smoothly scroll down to hide whitespace
-      if (scrollTop < 50 && scrollTop > 0) {
-        window.scrollTo({
-          top: 96, // Height of navbar (24 * 4 = 96px for h-24)
-          behavior: 'smooth'
-        });
-      }
-    };
-
-    // Initial scroll on page load to hide whitespace (desktop only)
-    if (isDesktop() && window.scrollY === 0) {
-      setTimeout(() => {
-        window.scrollTo({
-          top: 96,
-          behavior: 'smooth'
-        });
-      }, 100);
-    }
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
   };
@@ -124,43 +93,47 @@ export default function HomePage() {
   return (
     <>
       <main className="relative bg-white">
-        {/* Search Bar - Mobile First */}
-        <div className="px-4 pt-4 sm:px-6 lg:absolute lg:top-[137px] lg:left-[50px] lg:z-10 lg:px-0 lg:pt-0">
-          <form onSubmit={handleSearch} className="relative w-full sm:max-w-md lg:w-[367px] h-[50px]">
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={handleSearchInputChange}
-              onKeyDown={handleSearchKeyDown}
-              className="w-full h-full bg-[#d9d9d9] border-none rounded-[2px] px-4 pr-[50px] sm:px-5 font-[family-name:var(--font-accent)] text-xs text-black/66 tracking-[2px] uppercase placeholder:text-black/66 outline-none"
-            />
-            <button
-              type="submit"
-              className="absolute right-[15px] top-1/2 -translate-y-1/2 text-black/66 hover:text-black transition-colors cursor-pointer"
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-          </form>
-        </div>
+        {/* Hero Section */}
+        <section className="relative px-4 pt-6 pb-12 sm:px-6 sm:pt-10 sm:pb-16 lg:min-h-[780px] lg:pt-0 lg:px-[50px]">
+          {/* Bouncing words overlay – standalone in this file */}
+          <BouncingWordsOverlay
+            phrases={[
+              "BabyFictions",
+              "Wear Your Energy",
+              "New Collection",
+              "XXII",
+              "BYFXNS",
+              "Limited Stock",
+            ]}
+            className="font-[family-name:var(--font-accent)] uppercase tracking-[3px] text-[10px] sm:text-[12px] lg:text-[14px] text-black/20"
+            speedMin={70}
+            speedMax={120}
+            density={6}
+          />
 
-        {/* Hero Section - Mobile First */}
-        <section className="relative px-4 pt-8 pb-12 sm:px-6 sm:pt-12 sm:pb-16 lg:min-h-[800px] lg:pt-[200px] lg:px-[50px]">
           {/* Hero Text */}
-          <div className="mb-8 sm:mb-12 lg:absolute lg:top-[222px] lg:left-[50px] lg:mb-0">
-            <h1 className="font-[family-name:var(--font-headers)] text-[32px] leading-[28px] sm:text-[40px] sm:leading-[36px] lg:text-[48px] lg:leading-[40px] tracking-[2px] uppercase mb-8 sm:mb-10 lg:mb-[60px]">
+          <div className="mb-8 sm:mb-12 lg:absolute lg:top-[40px] lg:left-[50px] lg:mb-0 lg:z-10">
+            <h1 className="font-[family-name:var(--font-headers)] text-[32px] leading-[28px] sm:text-[40px] sm:leading-[36px] lg:text-[48px] lg:leading-[40px] tracking-[2px] uppercase mb-8 sm:mb-10 lg:mb-[50px]">
               <span className="block">New</span>
               <span className="block">Collection</span>
             </h1>
-            <p className="font-[family-name:var(--font-accent)] text-sm sm:text-base tracking-[2px] uppercase">
+            <p className="font-[family-name:var(--font-accent)] text-sm sm:text-base tracking-[2px] uppercase mb-6 lg:mb-8">
               <span className="block">Wear Your</span>
               <span className="block">Energy</span>
             </p>
+            
+            {/* About Us Button */}
+            <Link
+              href="/about"
+              className="inline-flex items-center gap-3 border-2 border-black px-6 py-3 font-[family-name:var(--font-nav)] text-sm uppercase tracking-[1px] hover:bg-black hover:text-white transition-all duration-300"
+            >
+              <span>About Us</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {/* Product Gallery - Mobile: Stack, Desktop: Side by Side */}
-          <div className="flex flex-col gap-4 sm:gap-5 mb-8 lg:absolute lg:top-[257px] lg:right-[50px] lg:flex-row lg:mb-0">
+          <div className="flex flex-col gap-4 sm:gap-5 mb-8 lg:absolute lg:top-[40px] lg:right-[50px] lg:flex-row lg:mb-0 lg:z-10">
             <div className="w-full h-[280px] sm:h-[350px] lg:w-[366px] lg:h-[376px] border border-[#d7d7d7] overflow-hidden">
               <img
                 src={heroImages[currentImageIndex]}
@@ -178,7 +151,7 @@ export default function HomePage() {
           </div>
 
           {/* Gallery Navigation */}
-          <div className="flex gap-4 sm:gap-5 justify-center mb-8 lg:absolute lg:top-[656px] lg:left-1/2 lg:-translate-x-1/2 lg:mb-0">
+          <div className="flex gap-4 sm:gap-5 justify-center mb-8 lg:absolute lg:top-[445px] lg:left-1/2 lg:-translate-x-1/2 lg:mb-0 lg:z-10">
             <button
               onClick={prevImage}
               className="w-10 h-10 border border-black/40 bg-transparent flex items-center justify-center hover:opacity-70 transition-opacity opacity-66"
@@ -196,7 +169,7 @@ export default function HomePage() {
           {/* Shop Button */}
           <Link
             href="/catalog"
-            className="bg[#d9d9d9] w-full sm:w-[265px] h-10 flex items-center justify-between px-5 font-[family-name:var(--font-nav)] text-sm sm:text-base text-black hover:opacity-80 transition-opacity lg:absolute lg:bottom-[40px] lg:left-[50px]"
+            className="bg-[#d9d9d9] w-full sm:w-[265px] h-10 flex items-center justify-between px-5 font-[family-name:var(--font-nav)] text-sm sm:text-base text-black hover:opacity-80 transition-opacity lg:absolute lg:bottom-[40px] lg:left-[50px]"
           >
             <span>Go To Shop</span>
             <div className="w-[47.5px] h-3 flex items-center justify-center rotate-180 scale-y-[-1]">
@@ -206,7 +179,7 @@ export default function HomePage() {
         </section>
 
         {/* Categories Masonry Section - Mobile First */}
-        <section className="mt-12 px-4 sm:mt-16 sm:px-6 lg:mt-[100px] lg:px-[50px]">
+        <section className="mt-6 px-4 sm:mt-8 sm:px-6 lg:mt-[32px] lg:px-[50px]">
           <div className="max-w-[1340px] mx-auto grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
             {/* Caps - small */}
             <Link
@@ -425,5 +398,128 @@ export default function HomePage() {
         </section>
       </main>
     </>
+  );
+}
+
+// Inline bouncing words overlay (standalone in this file)
+function BouncingWordsOverlay({
+  phrases,
+  className = "font-[family-name:var(--font-nav)] uppercase tracking-[3px] text-xs sm:text-sm text-black/25",
+  speedMin = 60,
+  speedMax = 120,
+  density,
+}: {
+  phrases: string[];
+  className?: string;
+  speedMin?: number;
+  speedMax?: number;
+  density?: number;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<HTMLSpanElement[]>([]);
+  const animRef = useRef<number>();
+  const lastTsRef = useRef<number>(0);
+  const boundsRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 });
+  const itemsRef = useRef<
+    Array<{ x: number; y: number; vx: number; vy: number; w: number; h: number }>
+  >([]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const texts = density && density > 0 ? phrases.slice(0, density) : phrases;
+
+    const rect = container.getBoundingClientRect();
+    boundsRef.current = { w: rect.width, h: rect.height };
+
+    itemsRef.current = texts.map((_, i) => {
+      const el = itemRefs.current[i];
+      const box = el.getBoundingClientRect();
+      const w = box.width;
+      const h = box.height;
+
+      const speed = Math.random() * (speedMax - speedMin) + speedMin;
+      const angle = Math.random() * Math.PI * 2;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+
+      const x = Math.random() * Math.max(1, boundsRef.current.w - w);
+      const y = Math.random() * Math.max(1, boundsRef.current.h - h);
+
+      return { x, y, vx, vy, w, h };
+    });
+
+    const step = (ts: number) => {
+      const last = lastTsRef.current || ts;
+      const dt = (ts - last) / 1000;
+      lastTsRef.current = ts;
+
+      const { w: bw, h: bh } = boundsRef.current;
+
+      itemsRef.current.forEach((it, i) => {
+        let x = it.x + it.vx * dt;
+        let y = it.y + it.vy * dt;
+
+        if (x <= 0) {
+          x = 0;
+          it.vx = Math.abs(it.vx);
+        } else if (x + it.w >= bw) {
+          x = bw - it.w;
+          it.vx = -Math.abs(it.vx);
+        }
+
+        if (y <= 0) {
+          y = 0;
+          it.vy = Math.abs(it.vy);
+        } else if (y + it.h >= bh) {
+          y = bh - it.h;
+          it.vy = -Math.abs(it.vy);
+        }
+
+        it.x = x;
+        it.y = y;
+        const el = itemRefs.current[i];
+        if (el) {
+          el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+        }
+      });
+
+      animRef.current = requestAnimationFrame(step);
+    };
+
+    animRef.current = requestAnimationFrame(step);
+
+    const onResize = () => {
+      const r = container.getBoundingClientRect();
+      boundsRef.current = { w: r.width, h: r.height };
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+      window.removeEventListener("resize", onResize);
+    };
+  }, [phrases, density, speedMin, speedMax]);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 pointer-events-none select-none z-0"
+      aria-hidden="true"
+    >
+      {(density && density > 0 ? phrases.slice(0, density) : phrases).map((text, i) => (
+        <span
+          key={i}
+          ref={(el) => {
+            if (el) itemRefs.current[i] = el;
+          }}
+          className={`absolute will-change-transform ${className}`}
+          style={{ transform: "translate3d(0, 0, 0)" }}
+        >
+          {text}
+        </span>
+      ))}
+    </div>
   );
 }

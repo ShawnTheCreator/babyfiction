@@ -95,3 +95,61 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Animated promo bar styles */
+.marquee {
+  position: relative;
+  overflow: hidden;
+}
+
+.marquee-track {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  animation: marquee-loop 22s linear infinite;
+  padding-left: 100%;
+}
+
+.marquee-track span {
+  display: inline-block;
+  margin-right: 2rem;
+  letter-spacing: 0.2em;
+}
+
+@keyframes marquee-loop {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+    transform: none;
+  }
+}
+
+/* Hero animated filler */
+.hero-fill {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.18;
+  background:
+    repeating-linear-gradient(135deg, rgba(0,0,0,0.06) 0 10px, transparent 10px 20px);
+  background-size: 20px 20px;
+  animation: hero-pan 24s linear infinite;
+}
+
+/* Slow pan to create motion */
+@keyframes hero-pan {
+  0%   { background-position: 0 0; }
+  100% { background-position: -240px 0; }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-fill {
+    animation: none;
+  }
+}
