@@ -107,11 +107,62 @@ function CheckoutInner() {
   }, [cartItems, price]);
 
   const handlePay = async () => {
+    // Basic card input validation (demo-level)
+    const digitsOnly = (s: string) => s.replace(/\D/g, '');
+    const isValidCard = digitsOnly(cardNumber).length >= 12;
+    const isValidExpiry = /^\d{2}\/\d{2}$/.test(expiry);
+    const isValidCvv = /^\d{3,4}$/.test(cvv);
+
+    if (!cardName.trim() || !isValidCard || !isValidExpiry || !isValidCvv) {
+      toast({
+        title: 'Invalid payment details',
+        description: 'Please check card name, number, expiry (MM/YY), and CVV.',
+      });
+      return;
+    }
+
+    // Ensure there's something to pay
+    if (total <= 0) {
+      toast({
+        title: 'Cart is empty',
+        description: 'Add items to your cart before paying.',
+      });
+      return;
+    }
+
     setProcessing(true);
+
+    // Capture user geolocation for tracking simulation (non-blocking)
     try {
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const payload = {
+              lat: pos.coords.latitude,
+              lon: pos.coords.longitude,
+              ts: Date.now(),
+            };
+            try {
+              localStorage.setItem('bf_checkout_geo', JSON.stringify(payload));
+            } catch {}
+          },
+          (err) => {
+            try {
+              localStorage.setItem('bf_checkout_geo', JSON.stringify({ error: err.code, ts: Date.now() }));
+            } catch {}
+          },
+          { enableHighAccuracy: true, timeout: 3000 }
+        );
+      }
+    } catch {}
+
+    try {
+      // Track initiation
+      try { track({ type: 'purchase', amount: total }); } catch {}
+
       const res: any = await fetchJson('/api/payfast/initiate', {
         method: 'POST',
-        body: JSON.stringify({}),
+        body: JSON.stringify({}), // backend uses server cart + env URLs
       });
       const data = res?.data || res;
 
@@ -137,7 +188,13 @@ function CheckoutInner() {
 
       document.body.appendChild(form);
       form.submit();
+
+      // Track redirect
+      try { track({ type: 'checkout_start', amount: total }); } catch {}
     } catch (err: any) {
+      // Track failure
+      try { track({ type: 'purchase', amount: total }); } catch {}
+
       toast({
         title: 'Payment failed',
         description:
