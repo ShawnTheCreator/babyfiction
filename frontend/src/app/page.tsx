@@ -60,7 +60,7 @@ export default function HomePage() {
     return () => { active = false; };
   }, []);
 
-  // Auto-scroll effect to hide navbar padding
+  // Removed the auto-scroll effect that was masking top whitespace
   useEffect(() => {
     // Only apply on desktop (width > 768px)
     const isDesktop = () => window.innerWidth > 768;
@@ -196,7 +196,7 @@ export default function HomePage() {
           {/* Shop Button */}
           <Link
             href="/catalog"
-            className="bg-[#d9d9d9] w-full sm:w-[265px] h-10 flex items-center justify-between px-5 font-[family-name:var(--font-nav)] text-sm sm:text-base text-black hover:opacity-80 transition-opacity lg:absolute lg:bottom-[40px] lg:left-[50px]"
+            className="bg[#d9d9d9] w-full sm:w-[265px] h-10 flex items-center justify-between px-5 font-[family-name:var(--font-nav)] text-sm sm:text-base text-black hover:opacity-80 transition-opacity lg:absolute lg:bottom-[40px] lg:left-[50px]"
           >
             <span>Go To Shop</span>
             <div className="w-[47.5px] h-3 flex items-center justify-center rotate-180 scale-y-[-1]">

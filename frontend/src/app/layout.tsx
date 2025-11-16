@@ -6,6 +6,7 @@ import AnalyticsClient from './analytics-client';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Rubik_Burned, Rubik_Dirt, Rubik_Doodle_Shadow, Rubik_Distressed, Inter } from 'next/font/google';
+import { ChatbotWidget } from '@/components/ChatbotWidget';
 
 const rubikBurned = Rubik_Burned({ 
   weight: '400',
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1 pt-24 md:pt-28">{children}</main>
             <Footer />
           </div>
+          <ChatbotWidget />
         </Providers>
       </body>
     </html>
