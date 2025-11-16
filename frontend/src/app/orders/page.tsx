@@ -21,24 +21,33 @@ function OrdersInner() {
     step: 0,
     steps: ['Processing order', 'Packed at warehouse', 'Dispatched', 'In transit near your location', 'Delivered'],
   });
-
+  // Add router redirect
+  // eslint-disable-next-line
+  const router: any = (typeof window !== 'undefined' ? require('next/navigation').useRouter() : { replace: () => {} }).useRouter?.();
+  
   useEffect(() => {
-    if (!orders || orders.length === 0) return;
+    if (!orders || orders.length === 0 || !router) return;
     let geo: any = null;
     try {
       const raw = localStorage.getItem('bf_checkout_geo');
       geo = raw ? JSON.parse(raw) : null;
     } catch {}
-
+  
     const latest = [...orders].sort((a, b) => {
       const ta = new Date(a.createdAt || 0).getTime();
       const tb = new Date(b.createdAt || 0).getTime();
       return tb - ta;
     })[0];
-
+  
     const recentPayment =
-      latest && latest?.paymentInfo?.status === 'paid' && Date.now() - new Date(latest.createdAt || Date.now()).getTime() < 1000 * 60 * 60 * 24;
-
+      latest && latest?.paymentInfo?.status === 'paid' &&
+      Date.now() - new Date(latest.createdAt || Date.now()).getTime() < 1000 * 60 * 60 * 24;
+  
+    if (recentPayment && geo && typeof geo.lat === 'number' && typeof geo.lon === 'number') {
+      router.replace(`/orders/${latest._id}/tracking?lat=${geo.lat}&lon=${geo.lon}&source=orders`);
+      return;
+    }
+  
     if (recentPayment && geo && !sim.active) {
       setSim((s) => ({
         ...s,
@@ -48,7 +57,7 @@ function OrdersInner() {
           ? { lat: geo.lat, lon: geo.lon }
           : undefined,
       }));
-
+  
       // staged updates every ~3 seconds
       let i = 0;
       const timer = setInterval(() => {

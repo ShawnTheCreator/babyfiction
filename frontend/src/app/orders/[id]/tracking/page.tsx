@@ -44,10 +44,36 @@ function TrackingInner() {
 
   const events = tracking?.events || [];
 
+  // Read optional lat/lon from query for map
+  const [coords, setCoords] = useState<{lat?: number; lon?: number}>({});
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const lat = params.get('lat'); const lon = params.get('lon');
+      setCoords({
+        lat: lat ? parseFloat(lat) : undefined,
+        lon: lon ? parseFloat(lon) : undefined,
+      });
+    } catch {}
+  }, []);
+
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-4 text-sm"><Link href={`/orders/${id}`} className="underline">← Back to Order</Link></div>
       <h1 className="text-2xl font-semibold">Order Tracking</h1>
+      {/* Map */}
+      {typeof coords.lat === 'number' && typeof coords.lon === 'number' && (
+        <div className="mt-4 rounded overflow-hidden border" style={{ height: 300 }}>
+          <iframe
+            title="Live Map"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            referrerPolicy="no-referrer-when-downgrade"
+            src={`https://maps.google.com/maps?q=${coords.lat},${coords.lon}&z=13&output=embed`}
+          />
+        </div>
+      )}
       <div className="mt-4 rounded border p-4">
         <div className="text-sm text-muted-foreground">Courier</div>
         <div className="font-medium">{tracking?.courier || '—'}</div>

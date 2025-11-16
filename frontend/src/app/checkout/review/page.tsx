@@ -37,6 +37,7 @@ function ReviewInner() {
   const [discountApplied, setDiscountApplied] = useState<number>(0);
   const [showDiscountInput, setShowDiscountInput] = useState<boolean>(false);
   const [showOrderDetails, setShowOrderDetails] = useState<boolean>(false);
+  const [processing, setProcessing] = useState<boolean>(false);
 
   // Load cart items
   useEffect(() => {
@@ -130,7 +131,7 @@ function ReviewInner() {
     setShowDiscountInput(false);
   };
 
-  const handleProceedToPayment = () => {
+  const handleProceedToPayment = async () => {
     if (!selectedAddress) {
       toast({ title: 'Address Required', description: 'Please select a delivery address', variant: 'destructive' });
       return;
@@ -660,10 +661,10 @@ function ReviewInner() {
               {/* Pay Button */}
               <button
                 onClick={handleProceedToPayment}
-                disabled={!selectedAddress || !paymentMethod}
+                disabled={processing || !selectedAddress || !paymentMethod}
                 className="w-full bg-[#4CAF50] text-white py-4 rounded-lg font-[family-name:var(--font-nav)] text-sm uppercase tracking-wider hover:bg-[#45a049] transition-colors disabled:bg-black/20 disabled:cursor-not-allowed"
               >
-                PAY
+                {processing ? 'Processing…' : 'PAY'}
               </button>
             </div>
           </div>
