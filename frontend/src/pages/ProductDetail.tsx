@@ -578,3 +578,4 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+//work mate
