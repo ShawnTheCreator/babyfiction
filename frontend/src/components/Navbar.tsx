@@ -104,7 +104,8 @@ const Navbar = () => {
       }`}
     >
       <div className="w-full px-6 sm:px-8 lg:px-12">
-        <div className="flex items-center justify-between h-24 md:h-28">
+        {/* CHANGED: grid with center min-width and column gaps */}
+        <div className="relative grid grid-cols-[1fr_minmax(180px,auto)_1fr] items-center h-24 md:h-28 gap-x-6 md:gap-x-10">
           {/* Left: Hamburger Menu + Navigation Links */}
           <div className="flex items-center gap-8 lg:gap-12">
             <button
@@ -119,8 +120,6 @@ const Navbar = () => {
                 height={28}
               />
             </button>
-
-            {/* Desktop Navigation Links */}
             <div className="hidden md:flex items-center gap-8 lg:gap-12">
               {mainNavLinks.map((link) => (
                 <Link
@@ -131,7 +130,6 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              {/* Gallery link - only show on xl screens (1280px+) */}
               <Link
                 href="/gallery"
                 className="hidden xl:block text-base lg:text-lg font-[family-name:var(--font-nav)] uppercase tracking-wider text-gray-800 hover:text-black transition-colors"
@@ -141,16 +139,16 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Center: Logo */}
+          {/* Center: Logo (CHANGED: centered by grid, with padding and responsive size) */}
           <Link
             href="/"
-            className="absolute left-1/2 transform -translate-x-1/2 text-2xl md:text-3xl font-[family-name:var(--font-logo)] tracking-tight"
+            className="justify-self-center px-2 sm:px-4 text-[22px] sm:text-[26px] md:text-[30px] xl:text-[32px] font-[family-name:var(--font-logo)] tracking-tight"
           >
             BabyFictions
           </Link>
 
           {/* Right: Action Icons */}
-          <div className="flex items-center gap-3 sm:gap-4 lg:gap-5">
+          <div className="flex items-center justify-end gap-3 sm:gap-4 lg:gap-5">
             {/* Cart Icon - Hidden for Admin */}
             {!isAdmin && (
               <Link
