@@ -7,7 +7,6 @@ export default function PayFastReturnPage() {
   const router = useRouter();
 
   useEffect(() => {
-    let active = true;
     (async () => {
       try {
         const res: any = await fetchJson('/api/orders');
@@ -47,7 +46,6 @@ export default function PayFastReturnPage() {
         router.replace('/orders');
       }
     })();
-    return () => { active = false; };
   }, [router]);
 
   return (

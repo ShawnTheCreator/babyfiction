@@ -61,6 +61,7 @@ function TrackingInner() {
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-4 text-sm"><Link href={`/orders/${id}`} className="underline">← Back to Order</Link></div>
       <h1 className="text-2xl font-semibold">Order Tracking</h1>
+
       {/* Map */}
       {typeof coords.lat === 'number' && typeof coords.lon === 'number' && (
         <div className="mt-4 rounded overflow-hidden border" style={{ height: 300 }}>
@@ -74,6 +75,7 @@ function TrackingInner() {
           />
         </div>
       )}
+
       <div className="mt-4 rounded border p-4">
         <div className="text-sm text-muted-foreground">Courier</div>
         <div className="font-medium">{tracking?.courier || '—'}</div>

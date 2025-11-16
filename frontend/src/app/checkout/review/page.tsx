@@ -662,7 +662,7 @@ function ReviewInner() {
               <button
                 onClick={handleProceedToPayment}
                 disabled={processing || !selectedAddress || !paymentMethod}
-                className="w-full bg-[#4CAF50] text-white py-4 rounded-lg font-[family-name:var(--font-nav)] text-sm uppercase tracking-wider hover:bg-[#45a049] transition-colors disabled:bg-black/20 disabled:cursor-not-allowed"
+                className="w-full bg-[#4CAF50] text-white py-4 rounded-lg font-[family-name:var(--font-nav)] text-sm uppercase tracking-wider hover:bg-[#45a049] transition-colors disabled:bg黑/20 disabled:cursor-not-allowed"
               >
                 {processing ? 'Processing…' : 'PAY'}
               </button>
