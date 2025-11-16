@@ -60,6 +60,38 @@ export default function HomePage() {
     return () => { active = false; };
   }, []);
 
+  // Auto-scroll effect to hide navbar padding
+  useEffect(() => {
+    // Only apply on desktop (width > 768px)
+    const isDesktop = () => window.innerWidth > 768;
+    
+    const handleScroll = () => {
+      if (!isDesktop()) return;
+      
+      const scrollTop = window.scrollY;
+      // If user scrolls to top (within 50px), smoothly scroll down to hide whitespace
+      if (scrollTop < 50 && scrollTop > 0) {
+        window.scrollTo({
+          top: 96, // Height of navbar (24 * 4 = 96px for h-24)
+          behavior: 'smooth'
+        });
+      }
+    };
+
+    // Initial scroll on page load to hide whitespace (desktop only)
+    if (isDesktop() && window.scrollY === 0) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: 96,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
   };
