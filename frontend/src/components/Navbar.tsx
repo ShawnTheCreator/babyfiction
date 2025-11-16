@@ -92,6 +92,8 @@ const Navbar = () => {
     { name: "Gallery", path: "/gallery" },
   ];
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -141,43 +143,47 @@ const Navbar = () => {
 
           {/* Right: Action Icons */}
           <div className="flex items-center gap-3 sm:gap-4">
-            {/* Cart Icon */}
-            <Link
-              href="/cart"
-              className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
-              aria-label="Shopping Cart"
-            >
-              <Image
-                src="/assets/images/icons/navbar/shopping-cart-icon.svg"
-                alt="Cart"
-                width={28}
-                height={28}
-              />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center font-[family-name:var(--font-body)] font-medium">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+            {/* Cart Icon - Hidden for Admin */}
+            {!isAdmin && (
+              <Link
+                href="/cart"
+                className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
+                aria-label="Shopping Cart"
+              >
+                <Image
+                  src="/assets/images/icons/navbar/shopping-cart-icon.svg"
+                  alt="Cart"
+                  width={28}
+                  height={28}
+                />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center font-[family-name:var(--font-body)] font-medium">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
-            {/* Wishlist Icon */}
-            <Link
-              href="/wishlist"
-              className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
-              aria-label="Wishlist"
-            >
-              <Image
-                src="/assets/images/icons/navbar/wishlist-icon.svg"
-                alt="Wishlist"
-                width={28}
-                height={28}
-              />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center font-[family-name:var(--font-body)] font-medium">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+            {/* Wishlist Icon - Hidden for Admin */}
+            {!isAdmin && (
+              <Link
+                href="/wishlist"
+                className="w-12 h-12 flex items-center justify-center hover:opacity-70 transition-opacity relative"
+                aria-label="Wishlist"
+              >
+                <Image
+                  src="/assets/images/icons/navbar/wishlist-icon.svg"
+                  alt="Wishlist"
+                  width={28}
+                  height={28}
+                />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-black text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center font-[family-name:var(--font-body)] font-medium">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Profile Icon with Dropdown */}
             <div ref={profileRef} className="relative">
@@ -274,3 +280,8 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+// Spacer component to prevent content from being hidden under navbar
+export const NavbarSpacer = () => {
+  return <div className="h-24 md:h-28" />;
+};
