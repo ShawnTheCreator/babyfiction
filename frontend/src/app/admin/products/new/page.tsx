@@ -42,6 +42,7 @@ export default function NewProductPage() {
     images: "",
     thumbnail: "",
     isFeatured: false,
+    tags: "",
   });
 
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([]);
@@ -71,8 +72,7 @@ export default function NewProductPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [thumbDragOver, setThumbDragOver] = useState(false);
-  const [variantFiles, setVariantFiles] = useState<File[]>([]);
-  const [variantUploading, setVariantUploading] = useState(false);
+
   const imagesList = form.images.split(',').map((s) => s.trim()).filter(Boolean);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -159,53 +159,7 @@ export default function NewProductPage() {
     setColorVariants(prev => prev.filter((_, i) => i !== index));
   };
 
-  const onVariantFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const list = e.target.files ? Array.from(e.target.files) : [];
-    setVariantFiles(list);
-  };
 
-  const removeVariantFile = (index: number) => {
-    setVariantFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const uploadVariantImages = async () => {
-    if (!variantFiles.length) return;
-    setVariantUploading(true);
-    setUploadError(null);
-    try {
-      const urls: string[] = [];
-      for (const f of variantFiles) {
-        const formData = new FormData();
-        formData.append('file', f);
-        const res: any = await fetchForm('/api/media/upload', formData);
-        if (res?.url) urls.push(res.url);
-      }
-      setVariantFiles([]);
-      if (urls.length) {
-        const existingUrls = currentColor.images.split(',').map(s => s.trim()).filter(Boolean);
-        const allUrls = [...existingUrls, ...urls];
-        setCurrentColor(prev => ({
-          ...prev,
-          images: allUrls.join(', '),
-          thumbnail: prev.thumbnail || urls[0] || '',
-        }));
-      }
-    } catch (err: any) {
-      setUploadError(err?.message || 'Upload failed');
-    } finally {
-      setVariantUploading(false);
-    }
-  };
-
-  const onVariantImagesDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const dt = e.dataTransfer;
-    const dropped = dt?.files ? Array.from(dt.files).filter(f => f.type.startsWith('image/')) : [];
-    if (dropped.length) {
-      setVariantFiles(dropped);
-    }
-  };
 
   const onThumbFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
@@ -341,6 +295,7 @@ export default function NewProductPage() {
           trackQuantity: true,
         },
         isFeatured: !!form.isFeatured,
+        tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
       };
       
       const res: any = await fetchJson('/api/products', { method: 'POST', body: JSON.stringify(payload) });
@@ -538,59 +493,14 @@ export default function NewProductPage() {
                   />
                 </div>
 
-                {/* Variant Image Upload */}
+                {/* Variant Image URLs */}
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700 mb-1.5 block">Variant Images</label>
+                  <label className="text-sm font-medium text-gray-700 mb-1.5 block">Variant Image URLs</label>
                   
-                  <div
-                    onDragOver={(e) => { e.preventDefault(); }}
-                    onDragLeave={() => {}}
-                    onDrop={onVariantImagesDrop}
-                    className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center bg-white"
-                  >
-                    <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        multiple 
-                        onChange={onVariantFilesChange}
-                        className="block w-full text-xs text-muted-foreground file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-foreground hover:file:bg-gray-200" 
-                      />
-                      <Button 
-                        type="button" 
-                        size="sm"
-                        onClick={uploadVariantImages} 
-                        disabled={!variantFiles.length || variantUploading}
-                        className="bg-blue-500 hover:bg-blue-600 whitespace-nowrap"
-                      >
-                        {variantUploading ? 'Uploading...' : variantFiles.length ? `Upload (${variantFiles.length})` : 'Upload'}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Preview selected files */}
-                  {variantFiles.length > 0 && (
-                    <div className="grid grid-cols-4 gap-2">
-                      {variantFiles.map((f, i) => (
-                        <div key={`vf-${i}`} className="relative rounded-md overflow-hidden border aspect-square">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-full object-cover" />
-                          <button
-                            type="button"
-                            onClick={() => removeVariantFile(i)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   <Textarea 
                     value={currentColor.images}
                     onChange={(e) => setCurrentColor(prev => ({ ...prev, images: e.target.value }))}
-                    placeholder="Uploaded image URLs will appear here (comma-separated)"
+                    placeholder="Enter image URLs (comma-separated)"
                     rows={2}
                     className="bg-white text-xs"
                   />
@@ -878,6 +788,25 @@ export default function NewProductPage() {
                     className="w-4 h-4 text-green-500 rounded"
                   />
                   <label htmlFor="isFeatured" className="text-sm text-gray-700">Featured Product</label>
+                </div>
+              </div>
+            </Card>
+
+            {/* SEO Card */}
+            <Card className="p-6 bg-white">
+              <h2 className="text-lg font-semibold mb-4">SEO Optimization</h2>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1.5 block">Tags</label>
+                  <Input 
+                    name="tags" 
+                    value={form.tags} 
+                    onChange={onChange} 
+                    placeholder="winter, jacket, outdoor, fashion, streetwear"
+                    className="bg-gray-50"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Enter comma-separated tags for better search visibility</p>
                 </div>
               </div>
             </Card>

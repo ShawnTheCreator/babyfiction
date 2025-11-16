@@ -25,9 +25,16 @@ const ProductDetail = () => {
     images: string[];
     thumbnail?: string;
     category?: string;
+    subcategory?: string;
     features?: string[];
     sizes?: string[];
     colors?: Array<{ name: string; code: string }>;
+    colorVariants?: Array<{
+      colorName: string;
+      colorCode: string;
+      sizes: Array<{ size: string; stock: number }>;
+      images: string[];
+    }>;
   };
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -53,6 +60,29 @@ const ProductDetail = () => {
         const res: any = await fetchJson(`/api/products/${id}`);
         const p = res?.product || res?.data || res;
         if (p && active) {
+          // Extract colors and sizes from colorVariants
+          let colors: Array<{ name: string; code: string }> = [];
+          let sizes: string[] = [];
+          
+          if (Array.isArray(p.colorVariants) && p.colorVariants.length > 0) {
+            // Get unique colors
+            colors = p.colorVariants.map((variant: any) => ({
+              name: variant.colorName,
+              code: variant.colorCode
+            }));
+            
+            // Get unique sizes from all variants
+            const sizeSet = new Set<string>();
+            p.colorVariants.forEach((variant: any) => {
+              if (Array.isArray(variant.sizes)) {
+                variant.sizes.forEach((sizeObj: any) => {
+                  sizeSet.add(sizeObj.size);
+                });
+              }
+            });
+            sizes = Array.from(sizeSet);
+          }
+          
           const mapped: Product = {
             id: p._id,
             name: p.name,
@@ -61,9 +91,10 @@ const ProductDetail = () => {
             images: Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.thumbnail ? [p.thumbnail] : []),
             thumbnail: p.thumbnail,
             category: p.category,
-            features: Array.isArray(p.features) ? p.features : ["Relaxed-fit shirt", "Camp collar and short sleeves", "Button-up front"],
-            sizes: Array.isArray(p?.variants?.size) ? p.variants.size : ["XS","S","M","L","XL","2X"],
-            colors: Array.isArray(p?.variants?.color) ? p.variants.color : defaultColors,
+            subcategory: p.subcategory,
+            colorVariants: p.colorVariants,
+            sizes: sizes.length > 0 ? sizes : ["XS","S","M","L","XL","2XL"],
+            colors: colors.length > 0 ? colors : defaultColors,
           };
           setProduct(mapped);
 
@@ -291,31 +322,6 @@ const ProductDetail = () => {
 
               {/* Accordion Sections */}
               <div className="mt-8 border-t border-gray-200">
-                {/* Features & Care */}
-                <div className="border-b border-gray-200">
-                  <button
-                    onClick={() => toggleSection('features')}
-                    className="w-full flex items-center justify-between py-4 text-left"
-                  >
-                    <span className="flex items-center gap-2 font-[family-name:var(--font-body)] text-sm font-medium">
-                      <Heart className="w-4 h-4" />
-                      FEATURES & CARE
-                    </span>
-                    {expandedSection === 'features' ? (
-                      <Plus className="w-5 h-5 rotate-45 transition-transform" />
-                    ) : (
-                      <Plus className="w-5 h-5 transition-transform" />
-                    )}
-                  </button>
-                  {expandedSection === 'features' && (
-                    <div className="pb-4 font-[family-name:var(--font-body)] text-sm text-gray-600 space-y-2">
-                      {product.features?.map((feature, index) => (
-                        <p key={index}>• {feature}</p>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
                 {/* Size & Fit */}
                 <div className="border-b border-gray-200">
                   <button
@@ -335,10 +341,23 @@ const ProductDetail = () => {
                     )}
                   </button>
                   {expandedSection === 'size' && (
-                    <div className="pb-4 font-[family-name:var(--font-body)] text-sm text-gray-600">
-                      <p>Model is wearing size M</p>
-                      <p>Fits true to size</p>
-                      <p>Relaxed fit for comfort</p>
+                    <div className="pb-4 font-[family-name:var(--font-body)] text-sm text-gray-600 space-y-2">
+                      {product.category === 'hats' ? (
+                        <p>Hats are a one size fits all.</p>
+                      ) : (
+                        <p>
+                          The sizing guide for each category is available here:{' '}
+                          {product.subcategory === 'hoodies' && <Link href="/sizing-guide/hoodies" className="underline hover:text-black">Hoodies</Link>}
+                          {product.subcategory === 't-shirts' && <Link href="/sizing-guide/tshirts" className="underline hover:text-black">T-Shirts</Link>}
+                          {(!product.subcategory || (product.subcategory !== 'hoodies' && product.subcategory !== 't-shirts')) && (
+                            <>
+                              <Link href="/sizing-guide/hoodies" className="underline hover:text-black">Hoodies</Link>
+                              {', '}
+                              <Link href="/sizing-guide/tshirts" className="underline hover:text-black">T-Shirts</Link>
+                            </>
+                          )}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
