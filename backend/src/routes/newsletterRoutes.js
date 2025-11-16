@@ -1,6 +1,6 @@
 import express from 'express';
-import { protect, restrictTo } from '../middleware/auth.js';
-import { validate } from '../middleware/validator.js';
+import { authenticate, authorize } from '../middleware/auth.js';
+import { validate } from '../middleware/validation.js';
 import {
   subscribe,
   unsubscribe,
@@ -20,8 +20,8 @@ router.get('/unsubscribe/:token', unsubscribe);
 router.put('/preferences/:token', updatePreferences);
 
 // Admin routes
-router.use(protect);
-router.use(restrictTo('admin'));
+router.use(authenticate);
+router.use(authorize('admin'));
 
 router.get('/subscribers', getSubscribers);
 router.get('/stats', getStats);

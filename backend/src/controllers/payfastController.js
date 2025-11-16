@@ -62,11 +62,16 @@ export async function initiatePayFast(req, res, next) {
     const item_name = items.length > 1 ? `${items.length} items` : (items[0]?.product?.name || 'Order');
     const item_description = `Cart checkout`;
 
+    // Derive origin-aware return/cancel URLs so Netlify, .co.za, or localhost all work
+    const origin = (req.headers.origin || '').replace(/\/$/, '');
+    const return_url = origin ? `${origin}/payfast/return` : PAYFAST_RETURN_URL;
+    const cancel_url = origin ? `${origin}/checkout?cancelled=1` : PAYFAST_CANCEL_URL;
+
     const fields = {
       merchant_id,
       merchant_key,
-      return_url: PAYFAST_RETURN_URL,
-      cancel_url: PAYFAST_CANCEL_URL,
+      return_url,
+      cancel_url,
       notify_url: PAYFAST_NOTIFY_URL,
       name_first,
       name_last,

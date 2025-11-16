@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{\"app\\\\auth\\\\login\\\\page.tsx -> react-google-recaptcha\":{\"id\":\"app\\\\auth\\\\login\\\\page.tsx -> react-google-recaptcha\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_react-google-recaptcha_lib_esm_index_js.js\"]}}"
+self.__REACT_LOADABLE_MANIFEST="{}"

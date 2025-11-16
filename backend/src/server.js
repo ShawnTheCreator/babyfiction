@@ -41,27 +41,24 @@ const allowedOrigins = [
   'https://babyfiction.vercel.app',
   'https://www.babyfiction.vercel.app',
   'https://babyfictions.netlify.app',
-  'https://babyfiction.onrender.com'
+  'https://babyfiction.onrender.com',
+  // Add your production custom domains
+  'https://babyfictions.co.za',
+  'https://www.babyfictions.co.za',
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, Postman)
     if (!origin) {
       return callback(null, true);
     }
-    
     // Allow all Netlify preview and production URLs
     if (origin.includes('.netlify.app')) {
       return callback(null, true);
     }
-    
-    // Allow configured origins
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    
-    // Reject others
     callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
