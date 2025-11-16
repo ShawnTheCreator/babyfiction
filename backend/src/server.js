@@ -12,6 +12,7 @@ import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import mediaRoutes from './routes/media.js';
 import analyticsRoutes from './routes/analytics.js';
+import newsletterRoutes from './routes/newsletterRoutes.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -122,6 +123,8 @@ app.use('/api/users', usersRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/payfast', payfastRoutes);
+// Mount newsletter API
+app.use('/api/newsletter', newsletterRoutes);
 
 // Error handling middleware
 app.use(notFound);

@@ -226,7 +226,83 @@ export const sendOrderConfirmationEmail = async (to, order, userName) => {
   }
 };
 
+export const sendOrderPaidTrackingEmail = async (to, order, userName) => {
+  const trackingUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/orders/${order._id}/tracking`;
+  const orderUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/orders/${order._id}`;
+
+  const emailOptions = {
+    to,
+    subject: `Payment Received — Track Order #${order._id} - Babyfiction`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #000; color: #fff; padding: 20px; text-align: center; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 8px; margin-top: 20px; }
+            .button { display: inline-block; background: #000; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Babyfiction</h1>
+            </div>
+            <div class="content">
+              <h2>Payment Received</h2>
+              <p>Hi ${userName || 'there'},</p>
+              <p>We’ve received your payment for order <strong>#${order._id}</strong>.</p>
+              <p>You can monitor your delivery using our tracking page below. We’ll update it with your courier and tracking number once the parcel is dispatched.</p>
+
+              <p style="text-align: center;">
+                <a href="${trackingUrl}" class="button">Track Your Order</a>
+              </p>
+
+              <p>If you need more details, you can view your order summary here:</p>
+              <p style="text-align: center;">
+                <a href="${orderUrl}" class="button">View Order</a>
+              </p>
+
+              <p>Thanks for shopping with Babyfiction!</p>
+            </div>
+            <div class="footer">
+              <p>&copy; ${new Date().getFullYear()} Babyfiction. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `,
+    text: `
+      Payment Received
+
+      Hi ${userName || 'there'},
+
+      We’ve received your payment for order #${order._id}.
+
+      Track your order: ${trackingUrl}
+      View your order: ${orderUrl}
+
+      We’ll update tracking details once your parcel is dispatched.
+
+      © ${new Date().getFullYear()} Babyfiction. All rights reserved.
+    `,
+  };
+
+  try {
+    const info = await sendEmail(emailOptions);
+    console.log('Order paid tracking email sent');
+    return info;
+  } catch (error) {
+    console.error('Error sending order paid tracking email:', error);
+    throw error;
+  }
+};
+
 export default {
   sendPasswordResetEmail,
   sendOrderConfirmationEmail,
-};
+  sendOrderPaidTrackingEmail,
+}

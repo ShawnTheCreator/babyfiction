@@ -72,6 +72,43 @@ function OrdersInner() {
     }
   }, [orders]);
 
+  // Load orders and refresh on cart updates (after ITN + return page event)
+  useEffect(() => {
+    let active = true;
+
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        const res: any = await fetchJson('/api/orders');
+        const data = Array.isArray(res?.orders) ? res.orders : Array.isArray(res?.data) ? res.data : res;
+        if (active) setOrders(data);
+        setError(null);
+      } catch (e: any) {
+        if (active) setError(e?.message || 'Failed to load orders');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    void loadOrders();
+
+    const onCartUpdated = () => {
+      // Refresh orders when cart changes (e.g., after payment clears server cart)
+      void loadOrders();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('bf_cart_updated', onCartUpdated as EventListener);
+    }
+
+    return () => {
+      active = false;
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('bf_cart_updated', onCartUpdated as EventListener);
+      }
+    };
+  }, []);
+
   return (
     <div className="mx-auto max-w-4xl p-6">
       {/* Tracking simulation banner */}
@@ -92,7 +129,9 @@ function OrdersInner() {
       )}
 
       {/* Orders list */}
-      {orders.length === 0 ? (
+      {loading && <p className="mt-4 text-sm text-muted-foreground">Loading orders…</p>}
+      {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+      {!loading && !error && orders.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">No orders yet.</p>
       ) : (
         <ul className="mt-6 space-y-3">

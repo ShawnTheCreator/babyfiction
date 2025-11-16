@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 export function getPayFastProcessUrl() {
   const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
-  return mode === 'test'
+  return (mode === 'test' || mode === 'sandbox')
     ? 'https://sandbox.payfast.co.za/eng/process'
     : 'https://www.payfast.co.za/eng/process';
 }

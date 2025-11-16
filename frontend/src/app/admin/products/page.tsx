@@ -208,11 +208,16 @@ export default function AdminProductsPage() {
                 {filteredProducts.map((product) => (
                   <TableRow key={product._id}>
                     <TableCell>
-                      <div className="w-12 h-12 rounded overflow-hidden bg-secondary">
+                      <div className="relative w-12 h-12 rounded overflow-hidden bg-secondary">
                         {product.thumbnail ? (
                           <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">No img</div>
+                        )}
+                        {!product.isActive && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <span className="bg-white text-black text-[10px] px-2 py-0.5 rounded">Inactive</span>
+                          </div>
                         )}
                       </div>
                     </TableCell>

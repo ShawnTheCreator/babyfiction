@@ -1071,13 +1071,6 @@ video {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
-.container {
-  width: 100%;
-  margin-right: auto;
-  margin-left: auto;
-  padding-right: 2rem;
-  padding-left: 2rem;
-}
 .\!container {
   width: 100% !important;
   margin-right: auto !important;
@@ -1085,14 +1078,21 @@ video {
   padding-right: 2rem !important;
   padding-left: 2rem !important;
 }
+.container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 2rem;
+  padding-left: 2rem;
+}
 @media (min-width: 1400px) {
-
-  .container {
-    max-width: 1400px;
-  }
 
   .\!container {
     max-width: 1400px !important;
+  }
+
+  .container {
+    max-width: 1400px;
   }
 }
 .sr-only {
@@ -1285,6 +1285,9 @@ video {
 .-z-10 {
   z-index: -10;
 }
+.z-0 {
+  z-index: 0;
+}
 .z-10 {
   z-index: 10;
 }
@@ -1302,9 +1305,6 @@ video {
 }
 .z-\[1\] {
   z-index: 1;
-}
-.z-0 {
-  z-index: 0;
 }
 .order-1 {
   order: 1;
@@ -1762,9 +1762,6 @@ video {
 .w-5 {
   width: 1.25rem;
 }
-.w-5\/6 {
-  width: 83.333333%;
-}
 .w-6 {
   width: 1.5rem;
 }
@@ -2007,6 +2004,21 @@ video {
 }
 .transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+@keyframes bounce {
+
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8,0,1,1);
+  }
+
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0,0,0.2,1);
+  }
+}
+.animate-bounce {
+  animation: bounce 1s infinite;
 }
 @keyframes fade-in {
 
@@ -2631,6 +2643,9 @@ video {
 .bg-black\/30 {
   background-color: rgb(0 0 0 / 0.3);
 }
+.bg-black\/40 {
+  background-color: rgb(0 0 0 / 0.4);
+}
 .bg-black\/5 {
   background-color: rgb(0 0 0 / 0.05);
 }
@@ -2743,10 +2758,6 @@ video {
 .bg-purple-50 {
   --tw-bg-opacity: 1;
   background-color: rgb(250 245 255 / var(--tw-bg-opacity, 1));
-}
-.bg-purple-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(168 85 247 / var(--tw-bg-opacity, 1));
 }
 .bg-purple-500\/10 {
   background-color: rgb(168 85 247 / 0.1);
@@ -3232,6 +3243,9 @@ video {
 .text-\[0\.8rem\] {
   font-size: 0.8rem;
 }
+.text-\[10px\] {
+  font-size: 10px;
+}
 .text-\[11px\] {
   font-size: 11px;
 }
@@ -3281,9 +3295,6 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
-}
-.text-\[10px\] {
-  font-size: 10px;
 }
 .font-bold {
   font-weight: 700;
@@ -3355,6 +3366,9 @@ video {
 .tracking-\[2px\] {
   letter-spacing: 2px;
 }
+.tracking-\[3px\] {
+  letter-spacing: 3px;
+}
 .tracking-tight {
   letter-spacing: -0.025em;
 }
@@ -3369,9 +3383,6 @@ video {
 }
 .tracking-widest {
   letter-spacing: 0.1em;
-}
-.tracking-\[3px\] {
-  letter-spacing: 3px;
 }
 .text-\[\#155724\] {
   --tw-text-opacity: 1;
@@ -3427,6 +3438,12 @@ video {
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity, 1));
+}
+.text-black\/20 {
+  color: rgb(0 0 0 / 0.2);
+}
+.text-black\/25 {
+  color: rgb(0 0 0 / 0.25);
 }
 .text-black\/40 {
   color: rgb(0 0 0 / 0.4);
@@ -3619,12 +3636,6 @@ video {
 .text-zinc-400 {
   --tw-text-opacity: 1;
   color: rgb(161 161 170 / var(--tw-text-opacity, 1));
-}
-.text-black\/20 {
-  color: rgb(0 0 0 / 0.2);
-}
-.text-black\/25 {
-  color: rgb(0 0 0 / 0.25);
 }
 .underline {
   text-decoration-line: underline;
@@ -5178,12 +5189,12 @@ All colors MUST be HSL.
     margin-top: 4rem;
   }
 
-  .sm\:mt-\[100px\] {
-    margin-top: 100px;
-  }
-
   .sm\:mt-8 {
     margin-top: 2rem;
+  }
+
+  .sm\:mt-\[100px\] {
+    margin-top: 100px;
   }
 
   .sm\:block {
@@ -5458,6 +5469,10 @@ All colors MUST be HSL.
     line-height: 1;
   }
 
+  .sm\:text-\[12px\] {
+    font-size: 12px;
+  }
+
   .sm\:text-\[13px\] {
     font-size: 13px;
   }
@@ -5507,10 +5522,6 @@ All colors MUST be HSL.
   .sm\:text-sm {
     font-size: 0.875rem;
     line-height: 1.25rem;
-  }
-
-  .sm\:text-\[12px\] {
-    font-size: 12px;
   }
 
   .sm\:leading-\[32px\] {
@@ -5617,6 +5628,10 @@ All colors MUST be HSL.
 
   .md\:max-w-md {
     max-width: 28rem;
+  }
+
+  .md\:grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 
   .md\:grid-cols-2 {
@@ -5914,16 +5929,16 @@ All colors MUST be HSL.
     margin-top: 103px;
   }
 
+  .lg\:mt-\[32px\] {
+    margin-top: 32px;
+  }
+
   .lg\:mt-\[60px\] {
     margin-top: 60px;
   }
 
   .lg\:mt-\[73px\] {
     margin-top: 73px;
-  }
-
-  .lg\:mt-\[32px\] {
-    margin-top: 32px;
   }
 
   .lg\:block {
@@ -6097,6 +6112,10 @@ All colors MUST be HSL.
     line-height: 1;
   }
 
+  .lg\:text-\[14px\] {
+    font-size: 14px;
+  }
+
   .lg\:text-\[32px\] {
     font-size: 32px;
   }
@@ -6116,10 +6135,6 @@ All colors MUST be HSL.
   .lg\:text-lg {
     font-size: 1.125rem;
     line-height: 1.75rem;
-  }
-
-  .lg\:text-\[14px\] {
-    font-size: 14px;
   }
 
   .lg\:leading-\[40px\] {

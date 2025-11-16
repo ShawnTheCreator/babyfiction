@@ -6,7 +6,7 @@ import { useCurrentUser } from "@/lib/auth";
 import { getAuthToken } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Package, ShoppingCart, ArrowUp, ArrowDown, History as HistoryIcon, Star as StarIcon } from "lucide-react";
+import { Users, ShoppingCart, ArrowUp, ArrowDown, FileDown, RefreshCcw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Types for user analytics
@@ -27,6 +27,11 @@ export default function Admin() {
   const [analytics, setAnalytics] = useState<UserAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recent, setRecent] = useState<Array<{ type: 'user' | 'order'; title: string; ts: string }>>([]);
+  const [reportsDownloading, setReportsDownloading] = useState<{ users: boolean; orders: boolean }>({ users: false, orders: false });
+  const [summary, setSummary] = useState<any>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -55,7 +60,7 @@ export default function Admin() {
         console.log('Analytics data received:', data);
         setAnalytics(data);
         setError(null);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Error fetching analytics:', err);
         setError(err.message || 'Failed to load analytics. Please try again later.');
       } finally {
@@ -72,11 +77,135 @@ export default function Admin() {
   }, [user]);
 
   useEffect(() => {
+    if (user?.role !== 'admin') return;
+
+    const loadSummary = async () => {
+      try {
+        setSummaryLoading(true);
+        const token = getAuthToken();
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://babyfiction.onrender.com';
+        const res = await fetch(`${API_URL}/api/analytics/summary?days=30`, {
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: 'include',
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          throw new Error(json?.message || 'Failed to fetch analytics summary');
+        }
+        setSummary(json);
+        setSummaryError(null);
+      } catch (e: any) {
+        setSummaryError(e.message || 'Failed to load charts');
+      } finally {
+        setSummaryLoading(false);
+      }
+    };
+
+    loadSummary();
+  }, [user]);
+
+  useEffect(() => {
+    if (user?.role !== 'admin') return;
+    let timer: any;
+    const loadRecent = async () => {
+      try {
+        const token = getAuthToken();
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://babyfiction.onrender.com';
+        const [usersRes, ordersRes] = await Promise.all([
+          fetch(`${API_URL}/api/admin/users?limit=5`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/api/orders/admin/all?limit=5`, { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        const usersJson = await usersRes.json();
+        const ordersJson = await ordersRes.json();
+        const users = Array.isArray(usersJson?.data) ? usersJson.data : [];
+        const orders = Array.isArray(ordersJson?.data) ? ordersJson.data : [];
+        const events: Array<{ type: 'user' | 'order'; title: string; ts: string }> = [
+          ...users.map((u: any) => ({ type: 'user' as const, title: `New user: ${u.email}`, ts: u.createdAt })),
+          ...orders.map((o: any) => ({ type: 'order' as const, title: `New order: #${o._id}`, ts: o.createdAt })),
+        ].sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime()).slice(0, 10);
+        setRecent(events);
+      } catch (e) {
+        // silent
+      }
+    };
+    loadRecent();
+    timer = setInterval(loadRecent, 10000); // live-ish every 10s
+    return () => timer && clearInterval(timer);
+  }, [user]);
+
+  useEffect(() => {
     if (!loading) {
       if (!user) router.replace("/auth/login");
       else if (user.role !== "admin") router.replace("/");
     }
   }, [user, loading, router]);
+
+  // Simple client-side CSV helpers
+  const downloadCSV = async (type: 'users' | 'orders') => {
+    try {
+      setReportsDownloading((s) => ({ ...s, [type]: true }));
+      const token = getAuthToken();
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://babyfiction.onrender.com';
+      const url = type === 'users'
+        ? `${API_URL}/api/admin/users?limit=1000`
+        : `${API_URL}/api/orders/admin/all?limit=1000`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+      });
+      const json = await res.json();
+      const rows = Array.isArray(json?.data) ? json.data : [];
+      if (!rows.length) return;
+      
+      // Flatten fields for readable CSVs
+      const headers = type === 'orders'
+        ? ['_id', 'status', 'total', 'userEmail', 'createdAt']
+        : ['_id', 'firstName', 'lastName', 'email', 'role', 'isActive', 'createdAt'];
+    
+      const normalized = rows.map((r: any) => {
+        if (type === 'orders') {
+          return {
+            _id: r._id,
+            status: r.status ?? '',
+            total: r?.pricing?.total ?? '',
+            userEmail: r?.user?.email ?? '',
+            createdAt: r.createdAt ?? '',
+          };
+        } else {
+          return {
+            _id: r._id,
+            firstName: r.firstName ?? '',
+            lastName: r.lastName ?? '',
+            email: r.email ?? '',
+            role: r.role ?? '',
+            isActive: r.isActive ?? '',
+            createdAt: r.createdAt ?? '',
+          };
+        }
+      });
+    
+      const csv = [
+        headers.join(','),
+        ...normalized.map((row: any) => headers.map(h => JSON.stringify(row[h] ?? '')).join(','))
+      ].join('\n');
+    
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${type}-report-${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      console.error('CSV download failed', e);
+    } finally {
+      setReportsDownloading((s) => ({ ...s, [type]: false }));
+    }
+  };
+
+  // Format number with commas
+  const formatNumber = (num: number) => {
+    return new Intl.NumberFormat().format(num);
+  };
 
   if (loading || !user || user.role !== "admin") {
     return (
@@ -85,29 +214,6 @@ export default function Admin() {
       </div>
     );
   }
-
-  // Format number with commas
-  const formatNumber = (num: number) => {
-    return new Intl.NumberFormat().format(num);
-  };
-
-  // Calculate percentage change
-  const getPercentageChange = (current: number, previous: number) => {
-    if (previous === 0) return 100;
-    return Math.round(((current - previous) / previous) * 100);
-  };
-
-  // Render loading skeleton
-  const renderSkeleton = (count = 1) => (
-    <div className="space-y-4">
-      {Array(count).fill(0).map((_, i) => (
-        <div key={i} className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2 mt-2"></div>
-        </div>
-      ))}
-    </div>
-  );
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pt-24 pb-16 px-6">
@@ -128,8 +234,8 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Analytics Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Analytics Grid — now only 3 cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"> {/* Optional: changed lg:grid-cols-4 → lg:grid-cols-3 */}
         {/* Users Card */}
         <Card className="p-6">
           <div className="flex items-center justify-between">
@@ -184,80 +290,41 @@ export default function Admin() {
           <p className="mt-2 text-sm text-muted-foreground">Active in last 30 days</p>
         </Card>
 
-        {/* User Plans Card */}
+        {/* Reports Card */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium">User Plans</h3>
-            <Package className="h-5 w-5 text-muted-foreground" />
+            <h3 className="font-medium">Reports</h3>
+            <FileDown className="h-5 w-5 text-muted-foreground" />
           </div>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-5/6" />
-            </div>
-          ) : error ? (
-            <p className="text-red-500 text-sm">{error}</p>
-          ) : (
-            <div className="space-y-3">
-              {analytics?.usersByPlan && (
-                <>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Free</span>
-                      <span className="font-medium">{analytics.usersByPlan.free || 0}</span>
-                    </div>
-                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500" 
-                        style={{ 
-                          width: `${(analytics.usersByPlan.free || 0) / (analytics.totalUsers || 1) * 100}%`,
-                          minWidth: '4px'
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Premium</span>
-                      <span className="font-medium">{analytics.usersByPlan.premium || 0}</span>
-                    </div>
-                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-purple-500" 
-                        style={{ 
-                          width: `${(analytics.usersByPlan.premium || 0) / (analytics.totalUsers || 1) * 100}%`,
-                          minWidth: '4px'
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Enterprise</span>
-                      <span className="font-medium">{analytics.usersByPlan.enterprise || 0}</span>
-                    </div>
-                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-green-500" 
-                        style={{ 
-                          width: `${(analytics.usersByPlan.enterprise || 0) / (analytics.totalUsers || 1) * 100}%`,
-                          minWidth: '4px'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+          <div className="space-y-3">
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2"
+              onClick={() => downloadCSV('orders')}
+              disabled={reportsDownloading.orders}
+            >
+              <FileDown className="h-4 w-4" />
+              {reportsDownloading.orders ? 'Preparing Orders CSV…' : 'Download Orders CSV'}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2"
+              onClick={() => downloadCSV('users')}
+              disabled={reportsDownloading.users}
+            >
+              <FileDown className="h-4 w-4" />
+              {reportsDownloading.users ? 'Preparing Users CSV…' : 'Download Users CSV'}
+            </Button>
+          </div>
         </Card>
+      </div>
 
-        {/* Recent Activity Card */}
+      {/* Second Row - Recent Activity */}
+      <div className="grid gap-6 md:grid-cols-1">
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-medium">Recent Activity</h3>
-            <HistoryIcon className="h-5 w-5 text-muted-foreground" />
+            <RefreshCcw className="h-5 w-5 text-muted-foreground" />
           </div>
           <div className="space-y-4">
             {isLoading ? (
@@ -272,36 +339,24 @@ export default function Admin() {
               ))
             ) : error ? (
               <p className="text-red-500 text-sm">Error loading activity</p>
-            ) : (
+            ) : recent.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                    <Users className="h-4 w-4" />
+                {recent.slice(0, 5).map((event, i) => (
+                  <div key={i} className="flex items-start space-x-3">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                      event.type === 'user' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                    }`}>
+                      {event.type === 'user' ? <Users className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{event.title}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(event.ts).toLocaleString()}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">New user registered</p>
-                    <p className="text-xs text-muted-foreground">5 minutes ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600">
-                    <ShoppingCart className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">New order received</p>
-                    <p className="text-xs text-muted-foreground">2 hours ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 text-purple-600">
-                    <StarIcon className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">New review submitted</p>
-                    <p className="text-xs text-muted-foreground">1 day ago</p>
-                  </div>
-                </div>
+                ))}
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No recent activity</p>
             )}
           </div>
         </Card>

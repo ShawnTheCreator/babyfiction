@@ -7,7 +7,9 @@ import AnalyticsClient from './analytics-client';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Rubik_Burned, Rubik_Dirt, Rubik_Doodle_Shadow, Rubik_Distressed, Inter } from 'next/font/google';
-import { ChatbotWidget } from '@/components/ChatbotWidget'; // removed
+import { NewsletterPopup } from '@/components/NewsletterPopup';
+import { CookieConsent } from '@/components/CookieConsent';
+import { ChatbotWidget } from '@/components/ChatbotWidget';
 
 const rubikBurned = Rubik_Burned({ 
   weight: '400',
@@ -67,7 +69,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className="flex-1 pt-24 md:pt-28">{children}</main>
             <Footer />
           </div>
-          {/* Chatbot mount removed to restore original layout */}
+          {/* Global popups and widgets */}
+          <NewsletterPopup />
+          <CookieConsent />
+          <ChatbotWidget />
         </Providers>
       </body>
     </html>

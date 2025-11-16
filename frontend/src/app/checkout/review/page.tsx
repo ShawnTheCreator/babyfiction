@@ -61,8 +61,6 @@ function ReviewInner() {
   useEffect(() => {
     (async () => {
       try {
-        // This would be an API call to get user's addresses
-        // For now, we'll check localStorage
         const saved = localStorage.getItem('bf_default_address');
         if (saved) {
           setSelectedAddress(JSON.parse(saved));
@@ -75,7 +73,7 @@ function ReviewInner() {
 
   // Calculate totals
   const { subtotal, shipping, vat, discount, total, itemCount } = useMemo(() => {
-    const TAX_RATE = 0.15; // 15% VAT
+    const TAX_RATE = 0.15;
     let sub = 0;
     let count = 0;
 
@@ -89,12 +87,9 @@ function ReviewInner() {
       }
     }
 
-    // Shipping logic: R1300+ free, else R130 metro
     const ship = sub >= 1300 ? 0 : (sub > 0 ? 130 : 0);
     const disc = discountApplied;
     
-    // VAT is inclusive in the price: selling price = base price * (1 + 15/100)
-    // So VAT = selling price - (selling price / 1.15)
     const subtotalAfterDiscount = sub - disc;
     const vatAmount = subtotalAfterDiscount - (subtotalAfterDiscount / 1.15);
     const tot = subtotalAfterDiscount + ship;
@@ -112,7 +107,6 @@ function ReviewInner() {
   const handleApplyDiscount = () => {
     if (!discountCode.trim()) return;
     
-    // Demo discount logic
     const code = discountCode.toUpperCase();
     let discountAmount = 0;
     
@@ -131,20 +125,98 @@ function ReviewInner() {
     setShowDiscountInput(false);
   };
 
-  const handleProceedToPayment = async () => {
-    if (!selectedAddress) {
-      toast({ title: 'Address Required', description: 'Please select a delivery address', variant: 'destructive' });
-      return;
+  const handleAddAddress = () => {
+    const go = (lat?: number, lon?: number) => {
+      try {
+        if (lat && lon) {
+          localStorage.setItem('bf_addr_geo', JSON.stringify({ lat, lon, ts: Date.now() }));
+          router.push(`/checkout/delivery/addresses/add?lat=${lat}&lon=${lon}`);
+        } else {
+          router.push('/checkout/delivery/addresses/add');
+        }
+      } catch {
+        router.push('/checkout/delivery/addresses/add');
+      }
+    };
+  
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => go(pos.coords.latitude, pos.coords.longitude),
+        () => {
+          toast({ title: 'Location Permission', description: 'You can still add address manually.' });
+          go();
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      go();
     }
-    
+  };
+
+  const handleProceedToPayment = async () => {
     if (!paymentMethod) {
       toast({ title: 'Payment Method Required', description: 'Please select a payment method', variant: 'destructive' });
       return;
     }
+    if (paymentMethod !== 'payfast') {
+      toast({ title: 'Sandbox Limit', description: 'Demo currently supports PayFast sandbox only.' });
+      return;
+    }
 
-    // Proceed to payment processing
-    toast({ title: 'Processing...', description: 'Redirecting to payment gateway' });
-    // Here you would redirect to payment gateway or process order
+    if (!selectedAddress) {
+      toast({ title: 'No Address Selected', description: 'Proceeding without an address (demo). You can add one later.' });
+    }
+
+    setProcessing(true);
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const payload = { lat: pos.coords.latitude, lon: pos.coords.longitude, ts: Date.now() };
+            try { localStorage.setItem('bf_checkout_geo', JSON.stringify(payload)); } catch {}
+          },
+          (err) => {
+            try { localStorage.setItem('bf_checkout_geo', JSON.stringify({ error: err.code, ts: Date.now() })); } catch {}
+          },
+          { enableHighAccuracy: true, timeout: 3000 }
+        );
+      }
+    } catch {}
+
+    try {
+      const res: any = await fetchJson('/api/payfast/initiate', { method: 'POST', body: JSON.stringify({}) });
+      const data = res?.data || res;
+      const processUrl = data?.processUrl || data?.url || 'https://sandbox.payfast.co.za/eng/process';
+      const fields = data?.fields;
+
+      if (!fields || Object.keys(fields).length === 0) {
+        throw new Error(data?.message || 'Failed to initiate PayFast');
+      }
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = processUrl;
+
+      Object.entries(fields).forEach(([key, value]) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = String(value ?? '');
+        form.appendChild(input);
+      });
+
+      document.body.appendChild(form);
+      form.submit();
+    } catch (err: any) {
+      toast({
+        title: 'Payment failed',
+        description: err?.message || 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   if (cartLoading) {
@@ -228,14 +300,14 @@ function ReviewInner() {
                   </p>
                 </div>
               ) : (
-                <Link
-                  href="/checkout/delivery/addresses/add"
+                <button
+                  onClick={handleAddAddress}
                   className="block w-full border-2 border-dashed border-black/20 rounded-lg p-6 text-center hover:border-black/40 transition-colors"
                 >
                   <p className="font-[family-name:var(--font-nav)] text-sm uppercase tracking-wider">
                     + Add Delivery Address
                   </p>
-                </Link>
+                </button>
               )}
             </div>
 
@@ -463,7 +535,7 @@ function ReviewInner() {
                 <div className="space-y-3">
                   <input
                     type="text"
-                    value={discountCode}
+                    value={discountCode} 
                     onChange={(e) => setDiscountCode(e.target.value)}
                     placeholder="Enter discount code"
                     className="w-full border-2 border-black/10 rounded-lg px-4 py-3 font-[family-name:var(--font-body)] text-sm focus:border-black/30 focus:outline-none"
@@ -492,7 +564,6 @@ function ReviewInner() {
 
           {/* Right Column - Order Summary */}
           <div className="lg:col-span-1">
-            `
             <div className="bg-white rounded-lg p-6 shadow-sm sticky top-6">
               <h2 className="font-[family-name:var(--font-headers)] text-lg uppercase tracking-[2px] mb-4">
                 Order Summary
@@ -661,8 +732,8 @@ function ReviewInner() {
               {/* Pay Button */}
               <button
                 onClick={handleProceedToPayment}
-                disabled={processing || !selectedAddress || !paymentMethod}
-                className="w-full bg-[#4CAF50] text-white py-4 rounded-lg font-[family-name:var(--font-nav)] text-sm uppercase tracking-wider hover:bg-[#45a049] transition-colors disabled:bg黑/20 disabled:cursor-not-allowed"
+                disabled={processing || !paymentMethod}
+                className="w-full bg-[#4CAF50] text-white py-4 rounded-lg font-[family-name:var(--font-nav)] text-sm uppercase tracking-wider hover:bg-[#45a049] transition-colors disabled:bg-black/20 disabled:cursor-not-allowed"
               >
                 {processing ? 'Processing…' : 'PAY'}
               </button>

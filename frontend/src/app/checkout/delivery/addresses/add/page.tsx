@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
-import { Suspense, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
@@ -37,10 +37,15 @@ function AddAddressInner() {
   const router = useRouter();
   const { user } = useCurrentUser();
   const { toast } = useToast();
-
+  const searchParams = useSearchParams();
+  const [geoLoading, setGeoLoading] = useState<boolean>(false);
+  const [mapLat, setMapLat] = useState<number | null>(null);
+  const [mapLon, setMapLon] = useState<number | null>(null);
+  
+  // Initialize formData state
   const [formData, setFormData] = useState<AddressFormData>({
     type: 'RESIDENTIAL',
-    recipientName: user?.name || '',
+    recipientName: '',
     recipientMobile: '',
     streetAddress: '',
     complex: '',
@@ -51,6 +56,114 @@ function AddAddressInner() {
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof AddressFormData, string>>>({});
+
+  const normalizeProvince = (stateName: string): string => {
+    const s = stateName.toLowerCase();
+    const match =
+      SA_PROVINCES.find((p) => s.includes(p.toLowerCase())) ||
+      (s.includes('kwazulu') ? 'KwaZulu-Natal' : '');
+    return match || formData.province;
+  };
+
+  const reverseGeocode = async (lat: number, lon: number) => {
+    try {
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`;
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
+      const data = await res.json();
+      const a = data?.address || {};
+
+      const street = [a?.house_number, a?.road].filter(Boolean).join(' ');
+      const suburb =
+        a?.suburb || a?.neighbourhood || a?.residential || a?.quarter || '';
+      const city =
+        a?.city || a?.town || a?.village || a?.hamlet || a?.municipality || '';
+      const provinceRaw = a?.state || '';
+      const province = normalizeProvince(provinceRaw);
+      const postalCode = a?.postcode || '';
+      const complex =
+        a?.building || a?.amenity || a?.industrial || a?.commercial || '';
+
+      setFormData((prev) => ({
+        ...prev,
+        streetAddress: street || prev.streetAddress,
+        complex: complex || prev.complex,
+        suburb: suburb || prev.suburb,
+        city: city || prev.city,
+        province,
+        postalCode: postalCode || prev.postalCode,
+        recipientName: prev.recipientName || (user?.name ?? ''),
+      }));
+      setMapLat(lat);
+      setMapLon(lon);
+      toast({ title: 'Location Added', description: 'Address auto-filled from your location.' });
+    } catch (err) {
+      console.error('Reverse geocode failed:', err);
+      toast({
+        title: 'Location Error',
+        description: 'Could not auto-fill address. Please enter manually.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator?.geolocation) {
+      toast({ title: 'Unsupported', description: 'Geolocation is not available.', variant: 'destructive' });
+      return;
+    }
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        try { localStorage.setItem('bf_addr_geo', JSON.stringify({ lat, lon, ts: Date.now() })); } catch {}
+        reverseGeocode(lat, lon).finally(() => setGeoLoading(false));
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        toast({ title: 'Permission Needed', description: 'Please allow location to auto-fill address.' });
+        setGeoLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 7000 }
+    );
+  };
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+      const latParam = params.get('lat');
+      const lonParam = params.get('lon');
+
+      if (latParam && lonParam) {
+        const lat = parseFloat(latParam);
+        const lon = parseFloat(lonParam);
+        if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+          reverseGeocode(lat, lon);
+          return;
+        }
+      }
+
+      const saved = localStorage.getItem('bf_addr_geo');
+      if (saved) {
+        const { lat, lon } = JSON.parse(saved);
+        if (typeof lat === 'number' && typeof lon === 'number') {
+          reverseGeocode(lat, lon);
+          return;
+        }
+      }
+    } catch {}
+
+    if (navigator?.geolocation) {
+      setGeoLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          reverseGeocode(pos.coords.latitude, pos.coords.longitude).finally(() => setGeoLoading(false));
+        },
+        () => setGeoLoading(false),
+        { enableHighAccuracy: true, timeout: 7000 }
+      );
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -221,6 +334,8 @@ function AddAddressInner() {
                     />
                     <button
                       type="button"
+                      onClick={handleUseCurrentLocation}
+                      disabled={geoLoading}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
                       title="Use current location"
                     >
@@ -233,7 +348,7 @@ function AddAddressInner() {
                   {errors.streetAddress && (
                     <p className="mt-1 text-xs text-red-500 font-[family-name:var(--font-body)]">{errors.streetAddress}</p>
                   )}
-                  <p className="mt-1 text-xs text-black/40 font-[family-name:var(--font-body)]">Powered by Google</p>
+                  <p className="mt-1 text-xs text-black/40 font-[family-name:var(--font-body)]">Powered by OpenStreetMap</p>
                 </div>
 
                 {/* Complex/Building (Optional) */}

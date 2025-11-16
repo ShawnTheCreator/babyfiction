@@ -2,6 +2,7 @@ import Cart from '../models/Cart.js';
 import { getPayFastProcessUrl, buildSignature, verifySignature } from '../services/payfast.js';
 import Order from '../models/Order.js';
 import User from '../models/User.js';
+import { sendOrderPaidTrackingEmail } from '../services/emailService.js';
 
 export async function initiatePayFast(req, res, next) {
   try {
@@ -43,7 +44,20 @@ export async function initiatePayFast(req, res, next) {
     const payer = req.user || {};
     const name_first = payer.firstName || 'Customer';
     const name_last = payer.lastName || 'Guest';
-    const email_address = payer.email || 'test@payfast.co.za';
+    let email_address = payer.email || 'test@payfast.co.za';
+
+    // Sandbox guard: avoid same-account payments in PayFast test mode
+    const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
+    const merchantEmail = String(process.env.PAYFAST_MERCHANT_EMAIL || '').trim().toLowerCase();
+    if (mode === 'test') {
+      const userEmail = String(email_address || '').trim().toLowerCase();
+      // If merchant email is known and matches user email, or merchant email is not set,
+      // override to a unique sandbox email to avoid "same account" rejection.
+      if (!merchantEmail || userEmail === merchantEmail) {
+        email_address = `sandbox-buyer+${req.user._id}@example.com`;
+      }
+    }
+
     const m_payment_id = `BF-${req.user._id}-${Date.now()}`;
     const item_name = items.length > 1 ? `${items.length} items` : (items[0]?.product?.name || 'Order');
     const item_description = `Cart checkout`;
@@ -88,6 +102,11 @@ export async function handleITN(req, res) {
     const payload = req.body || {};
 
     if (!verifySignature(payload, passphrase)) {
+      console.warn('ITN signature mismatch', {
+        providedSignature: payload?.signature,
+        passphraseConfigured: !!(passphrase && passphrase.trim()),
+        payloadKeys: Object.keys(payload || {}).length,
+      });
       return res.status(400).send('Invalid signature');
     }
 
@@ -178,8 +197,19 @@ export async function handleITN(req, res) {
               notes: 'Created via PayFast ITN (sandbox/production)',
             });
 
-            // Clear the user's cart after successful order creation
+            // Clear cart
             await Cart.findOneAndDelete({ user: user._id });
+
+            // Send tracking link email
+            try {
+              await sendOrderPaidTrackingEmail(
+                user.email,
+                order,
+                user.firstName || user.email
+              );
+            } catch (emailErr) {
+              console.error('ITN: Failed to send tracking email:', emailErr);
+            }
 
             console.log('Order created from PayFast ITN:', order._id);
           } else {

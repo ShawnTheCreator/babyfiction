@@ -50,10 +50,16 @@ function TrackingInner() {
     try {
       const params = new URLSearchParams(window.location.search);
       const lat = params.get('lat'); const lon = params.get('lon');
-      setCoords({
-        lat: lat ? parseFloat(lat) : undefined,
-        lon: lon ? parseFloat(lon) : undefined,
-      });
+      if (lat && lon) {
+        setCoords({ lat: parseFloat(lat), lon: parseFloat(lon) });
+      } else {
+        // Fallback: use geolocation captured at checkout if present
+        const raw = localStorage.getItem('bf_checkout_geo');
+        const geo = raw ? JSON.parse(raw) : null;
+        if (geo && typeof geo.lat === 'number' && typeof geo.lon === 'number') {
+          setCoords({ lat: geo.lat, lon: geo.lon });
+        }
+      }
     } catch {}
   }, []);
 
@@ -63,18 +69,26 @@ function TrackingInner() {
       <h1 className="text-2xl font-semibold">Order Tracking</h1>
 
       {/* Map */}
-      {typeof coords.lat === 'number' && typeof coords.lon === 'number' && (
-        <div className="mt-4 rounded overflow-hidden border" style={{ height: 300 }}>
-          <iframe
-            title="Live Map"
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            referrerPolicy="no-referrer-when-downgrade"
-            src={`https://maps.google.com/maps?q=${coords.lat},${coords.lon}&z=13&output=embed`}
-          />
-        </div>
-      )}
+      {(() => {
+        const hasCoords = typeof coords.lat === 'number' && typeof coords.lon === 'number';
+        const locationText = (events[0]?.location || '').trim();
+        const embedSrc = hasCoords
+          ? `https://maps.google.com/maps?q=${coords.lat},${coords.lon}&z=13&output=embed`
+          : (locationText ? `https://maps.google.com/maps?q=${encodeURIComponent(locationText)}&z=13&output=embed` : null);
+
+        return embedSrc ? (
+          <div className="mt-4 rounded overflow-hidden border" style={{ height: 300 }}>
+            <iframe
+              title="Live Map"
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              referrerPolicy="no-referrer-when-downgrade"
+              src={embedSrc}
+            />
+          </div>
+        ) : null;
+      })()}
 
       <div className="mt-4 rounded border p-4">
         <div className="text-sm text-muted-foreground">Courier</div>

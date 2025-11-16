@@ -190,8 +190,7 @@ export const getCategories = async (req, res, next) => {
 export const getFeaturedProducts = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit) || 5;
-    const products = await Product.find({ isFeatured: true }).limit(limit);
-    
+    const products = await Product.find({ isFeatured: true, isActive: true }).limit(limit);
     res.status(200).json({
       success: true,
       count: products.length,
@@ -208,19 +207,17 @@ export const getFeaturedProducts = async (req, res, next) => {
 export const searchProducts = async (req, res, next) => {
   try {
     const { query } = req.query;
-    
     if (!query) {
       return next(createError('Search query is required', 400));
     }
-    
     const products = await Product.find({
+      isActive: true,
       $or: [
         { name: { $regex: query, $options: 'i' } },
         { description: { $regex: query, $options: 'i' } },
         { category: { $regex: query, $options: 'i' } }
       ]
     });
-    
     res.status(200).json({
       success: true,
       count: products.length,
