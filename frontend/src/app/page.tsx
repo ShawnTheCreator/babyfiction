@@ -33,7 +33,7 @@ export default function HomePage() {
     let active = true;
     (async () => {
       try {
-        const res: any = await fetchJson('/api/products/featured?limit=3');
+        const res: any = await fetchJson('/api/products/featured');
         const list = Array.isArray(res?.products) ? res.products : [];
         const mapped: Product[] = list.map((p: any) => ({
           id: p._id,
@@ -43,7 +43,15 @@ export default function HomePage() {
           category: p.category,
           additional_images: p.images || [],
         }));
-        if (active) setProducts(mapped);
+        
+        // If more than 3 products, randomly select 3
+        let finalProducts = mapped;
+        if (mapped.length > 3) {
+          const shuffled = [...mapped].sort(() => Math.random() - 0.5);
+          finalProducts = shuffled.slice(0, 3);
+        }
+        
+        if (active) setProducts(finalProducts);
       } catch {
       } finally {
         if (active) setLoading(false);
