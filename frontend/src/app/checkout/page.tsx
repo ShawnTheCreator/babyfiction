@@ -106,7 +106,7 @@ function CheckoutInner() {
     return { subtotal: sub, shipping: ship, tax: t, total: tot };
   }, [cartItems, price]);
 
-  const handlePay = async () => {
+  async function handlePay() {
     // Basic card input validation (demo-level)
     const digitsOnly = (s: string) => s.replace(/\D/g, '');
     const isValidCard = digitsOnly(cardNumber).length >= 12;
@@ -177,15 +177,17 @@ function CheckoutInner() {
       const form = document.createElement('form');
       form.method = 'POST';
       form.action = processUrl;
-
+  
       Object.entries(fields).forEach(([key, value]) => {
+        // Do not submit debug-only fields to PayFast
+        if (key === 'signature_raw') return;
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = key;
         input.value = String(value ?? '');
         form.appendChild(input);
       });
-
+  
       document.body.appendChild(form);
       form.submit();
 

@@ -1,5 +1,5 @@
 import Cart from '../models/Cart.js';
-import { getPayFastProcessUrl, buildSignature, verifySignature } from '../services/payfast.js';
+import { getPayFastProcessUrl, buildSignature, buildSignatureDebug, verifySignature } from '../services/payfast.js';
 import Order from '../models/Order.js';
 import User from '../models/User.js';
 import { sendOrderPaidTrackingEmail } from '../services/emailService.js';
@@ -47,7 +47,7 @@ export async function initiatePayFast(req, res, next) {
     let email_address = payer.email || 'test@payfast.co.za';
 
     // Sandbox guard: avoid same-account payments in PayFast test mode
-    const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
+    // mode already declared above; reuse it
     const merchantEmail = String(process.env.PAYFAST_MERCHANT_EMAIL || '').trim().toLowerCase();
     if (mode === 'test') {
       const userEmail = String(email_address || '').trim().toLowerCase();
@@ -89,13 +89,16 @@ export async function initiatePayFast(req, res, next) {
       }
     });
 
-    const signatureData = buildSignatureDebug(fields, PAYFAST_PASSPHRASE);
+    const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
     const processUrl = getPayFastProcessUrl();
 
-    const responseFields = { ...fields, signature: signatureData.signature };
-    // mode already declared above; reuse it instead of re-declaring
+    let responseFields;
     if (mode === 'test') {
-      responseFields.signature_raw = signatureData.raw;
+      const sigData = buildSignatureDebug(fields, PAYFAST_PASSPHRASE);
+      responseFields = { ...fields, signature: sigData.signature, signature_raw: sigData.raw };
+    } else {
+      const signature = buildSignature(fields, PAYFAST_PASSPHRASE);
+      responseFields = { ...fields, signature };
     }
 
     return res.json({

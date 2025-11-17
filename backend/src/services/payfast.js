@@ -57,6 +57,7 @@ export function buildSignature(fields, passphrase) {
   return crypto.createHash('md5').update(pfOutput, 'utf8').digest('hex');
 }
 
+// Add: buildSignatureDebug to return both signature and raw string
 export function buildSignatureDebug(fields, passphrase) {
   const orderedKeys = [
     'merchant_id',
