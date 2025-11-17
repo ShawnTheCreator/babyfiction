@@ -40,6 +40,9 @@ export async function initiatePayFast(req, res, next) {
       return res.status(500).json({ success: false, message: 'PayFast merchant credentials not configured' });
     }
 
+    // Declare mode BEFORE any usage
+    const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
+
     const amount = (Number(total) || 0).toFixed(2);
     const payer = req.user || {};
     const name_first = payer.firstName || 'Customer';
@@ -47,12 +50,9 @@ export async function initiatePayFast(req, res, next) {
     let email_address = payer.email || 'test@payfast.co.za';
 
     // Sandbox guard: avoid same-account payments in PayFast test mode
-    // mode already declared above; reuse it
     const merchantEmail = String(process.env.PAYFAST_MERCHANT_EMAIL || '').trim().toLowerCase();
     if (mode === 'test') {
       const userEmail = String(email_address || '').trim().toLowerCase();
-      // If merchant email is known and matches user email, or merchant email is not set,
-      // override to a unique sandbox email to avoid "same account" rejection.
       if (!merchantEmail || userEmail === merchantEmail) {
         email_address = `sandbox-buyer+${req.user._id}@example.com`;
       }
@@ -89,26 +89,12 @@ export async function initiatePayFast(req, res, next) {
       }
     });
 
-    const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
+    const signature = buildSignature(fields, PAYFAST_PASSPHRASE);
     const processUrl = getPayFastProcessUrl();
-
-    let responseFields;
-    if (mode === 'test') {
-      const sigData = buildSignatureDebug(fields, PAYFAST_PASSPHRASE);
-      responseFields = { ...fields, signature: sigData.signature, signature_raw: sigData.raw };
-    } else {
-      const signature = buildSignature(fields, PAYFAST_PASSPHRASE);
-      const processUrl = getPayFastProcessUrl();
-    
-      return res.json({
-        processUrl,
-        fields: { ...fields, signature },
-      });
-    }
 
     return res.json({
       processUrl,
-      fields: responseFields,
+      fields: { ...fields, signature },
     });
   } catch (err) {
     next(err);
