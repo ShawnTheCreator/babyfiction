@@ -39,9 +39,9 @@ export const register = async (req, res, next) => {
       password
     });
 
-    // Generate verification token (link)
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    user.emailVerificationToken = verificationToken;
+    // Mark verified on creation and skip email link step
+    user.isEmailVerified = true;
+    user.emailVerificationToken = undefined;
 
     // Generate PIN for step verification
     const pin = generatePin();
@@ -50,20 +50,7 @@ export const register = async (req, res, next) => {
     user.emailOtpPurpose = 'signup';
     await user.save();
 
-    // Send verification email link (non-blocking)
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-    try {
-      await sendEmail({
-        to: user.email,
-        subject: 'Verify your email address',
-        text: `Hi ${user.firstName}, please verify your email: ${verificationUrl}`,
-        html: `<p>Hi ${user.firstName},</p><p>Please verify your email by clicking the link below:</p><p><a href="${verificationUrl}">${verificationUrl}</a></p>`
-      });
-    } catch (e) {
-      console.error('Email send failed:', e?.message || e);
-    }
-
-    // Send PIN via Resend
+    // Send PIN via email
     try {
       await sendEmail({
         to: user.email,
@@ -102,7 +89,7 @@ export const register = async (req, res, next) => {
               </div>
             </body>
           </html>
-        `
+        `,
       });
     } catch (e) {
       console.error('Failed to send verification PIN:', e?.message || e);
