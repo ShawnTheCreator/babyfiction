@@ -316,16 +316,25 @@ export const getMe = async (req, res, next) => {
 // @access  Private
 export const updateProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, phone, address } = req.body;
+    const { firstName, lastName, phone, address, preferences } = req.body;
     
+    const update = {
+      firstName,
+      lastName,
+      phone,
+      address
+    };
+    if (preferences && typeof preferences === 'object') {
+      update.preferences = {
+        emailNotifications: preferences.emailNotifications ?? true,
+        smsNotifications: preferences.smsNotifications ?? false,
+        newsletter: preferences.newsletter ?? false,
+      };
+    }
+
     const user = await User.findByIdAndUpdate(
       req.user?._id,
-      {
-        firstName,
-        lastName,
-        phone,
-        address
-      },
+      update,
       { new: true, runValidators: true }
     );
 

@@ -55,6 +55,9 @@ type Order = {
   }>;
   createdAt: string;
   updatedAt: string;
+  paymentInfo?: {
+    status?: string;
+  };
 };
 
 type WishlistItem = {
@@ -134,6 +137,11 @@ function AccountDashboard() {
     orders: "",
     wishlist: "",
   });
+  const [deliverySim, setDeliverySim] = useState<{active: boolean; step: number; steps: string[]}>({
+    active: false,
+    step: 0,
+    steps: ['Processing order', 'Packed', 'Dispatched', 'In transit', 'Delivered'],
+  });
 
   // Fetch user data
   useEffect(() => {
@@ -209,6 +217,53 @@ function AccountDashboard() {
     }
   };
 
+  // Live refresh orders when cart is updated (e.g., after PayFast ITN clears cart)
+  useEffect(() => {
+    const onCartUpdated = async () => {
+      try {
+        setLoading(prev => ({ ...prev, orders: true }));
+        const data: any = await fetchJson('/api/orders');
+        const list = Array.isArray(data?.data) ? data.data :
+                     Array.isArray(data?.orders) ? data.orders :
+                     Array.isArray(data) ? data : [];
+        setOrders(list);
+        setError(prev => ({ ...prev, orders: '' }));
+
+        // If there is a recent paid order, kick off a short delivery animation
+        const latest = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const recentPayment =
+          latest && latest?.paymentInfo?.status === 'paid' &&
+          Date.now() - new Date(latest.createdAt || Date.now()).getTime() < 1000 * 60 * 60 * 24;
+        if (recentPayment && !deliverySim.active) {
+          setDeliverySim(s => ({ ...s, active: true, step: 0 }));
+          let i = 0;
+          const stepsLen = deliverySim.steps.length;
+          const timer: any = setInterval(() => {
+            i += 1;
+            setDeliverySim(s => ({ ...s, step: Math.min(i, stepsLen - 1) }));
+            if (i >= stepsLen - 1) {
+              clearInterval(timer);
+              setTimeout(() => setDeliverySim(s => ({ ...s, active: false, step: 0 })), 1500);
+            }
+          }, 3000);
+        }
+      } catch {
+        setError(prev => ({ ...prev, orders: 'Failed to load orders' }));
+      } finally {
+        setLoading(prev => ({ ...prev, orders: false }));
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('bf_cart_updated', onCartUpdated as EventListener);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('bf_cart_updated', onCartUpdated as EventListener);
+      }
+    };
+  }, [deliverySim.active]);
+
   // Handle order status badge
   const getOrderStatusBadge = (status: string) => {
     switch (status) {
@@ -252,7 +307,8 @@ function AccountDashboard() {
         firstName: firstName || '',
         lastName: lastName || '',
         phone: profile.phone || '',
-        address: profile.address || undefined
+        address: profile.address || undefined,
+        preferences: profile.preferences || undefined
       };
       const res: any = await fetchJson('/api/auth/profile', {
         method: 'PUT',
@@ -264,6 +320,7 @@ function AccountDashboard() {
         name: [updated?.firstName, updated?.lastName].filter(Boolean).join(' ') || prev?.name || '',
         phone: updated?.phone || prev?.phone || '',
         address: updated?.address || prev?.address,
+        preferences: updated?.preferences || prev?.preferences,
         updatedAt: updated?.updatedAt || prev?.updatedAt || new Date().toISOString(),
       }));
       setProfileSaveMsg('Profile updated successfully');
@@ -681,30 +738,27 @@ function AccountDashboard() {
             <CardHeader>
               <CardTitle>My Orders</CardTitle>
               <CardDescription>
-                View and track your order history
+                Track and manage your orders.
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {deliverySim.active && (
+                <div className="mt-2 mb-6 rounded-lg border p-4 bg-green-50">
+                  <div className="text-sm text-black/70">
+                    {`Tracking: ${deliverySim.steps[deliverySim.step]}`}
+                  </div>
+                  <div className="mt-2 h-2 bg-black/10 rounded">
+                    <div
+                      className="h-2 bg-[#4CAF50] rounded"
+                      style={{ width: `${((deliverySim.step + 1) / deliverySim.steps.length) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
               {loading.orders ? (
                 <OrdersSkeleton />
               ) : error.orders ? (
-                <ErrorState 
-                  message={error.orders} 
-                  onRetry={() => {
-                    setLoading(prev => ({ ...prev, orders: true }));
-                    fetchJson('/api/orders')
-                      .then((data) => {
-                        setOrders(
-                          Array.isArray((data as any)?.data) ? (data as any).data :
-                          Array.isArray((data as any)?.orders) ? (data as any).orders :
-                          Array.isArray(data) ? data : []
-                        );
-                        setError(prev => ({ ...prev, orders: '' }));
-                      })
-                      .catch(() => setError(prev => ({ ...prev, orders: 'Failed to load orders' })))
-                      .finally(() => setLoading(prev => ({ ...prev, orders: false })));
-                  }}
-                />
+                <div className="text-sm text-red-600">{error.orders}</div>
               ) : orders.length === 0 ? (
                 <div className="text-center py-12">
                   <ShoppingBag className="mx-auto h-12 w-12 text-gray-400" />

@@ -50,6 +50,11 @@ const userSchema = new mongoose.Schema({
     zipCode: { type: String, default: '' },
     country: { type: String, default: '' }
   },
+  preferences: {
+    emailNotifications: { type: Boolean, default: true },
+    smsNotifications: { type: Boolean, default: false },
+    newsletter: { type: Boolean, default: false }
+  },
   isEmailVerified: {
     type: Boolean,
     default: true
