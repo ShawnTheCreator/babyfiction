@@ -1,5 +1,5 @@
 import Cart from '../models/Cart.js';
-import { getPayFastProcessUrl, buildSignature, buildSignatureDebug, verifySignature } from '../services/payfast.js';
+import { getPayFastProcessUrl, buildSignature, verifySignature } from '../services/payfast.js';
 import Order from '../models/Order.js';
 import User from '../models/User.js';
 import { sendOrderPaidTrackingEmail } from '../services/emailService.js';
@@ -98,7 +98,12 @@ export async function initiatePayFast(req, res, next) {
       responseFields = { ...fields, signature: sigData.signature, signature_raw: sigData.raw };
     } else {
       const signature = buildSignature(fields, PAYFAST_PASSPHRASE);
-      responseFields = { ...fields, signature };
+      const processUrl = getPayFastProcessUrl();
+    
+      return res.json({
+        processUrl,
+        fields: { ...fields, signature },
+      });
     }
 
     return res.json({

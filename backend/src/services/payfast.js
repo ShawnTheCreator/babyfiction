@@ -1,6 +1,5 @@
 // payfast service helpers
 import crypto from 'crypto';
-
 export function getPayFastProcessUrl() {
   const mode = String(process.env.PAYFAST_MODE || 'test').toLowerCase();
   return (mode === 'test' || mode === 'sandbox')
