@@ -89,12 +89,18 @@ export async function initiatePayFast(req, res, next) {
       }
     });
 
-    const signature = buildSignature(fields, PAYFAST_PASSPHRASE);
+    const signatureData = buildSignatureDebug(fields, PAYFAST_PASSPHRASE);
     const processUrl = getPayFastProcessUrl();
+
+    const responseFields = { ...fields, signature: signatureData.signature };
+    // mode already declared above; reuse it instead of re-declaring
+    if (mode === 'test') {
+      responseFields.signature_raw = signatureData.raw;
+    }
 
     return res.json({
       processUrl,
-      fields: { ...fields, signature },
+      fields: responseFields,
     });
   } catch (err) {
     next(err);

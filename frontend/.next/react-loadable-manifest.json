@@ -1,1 +1,14 @@
-{}
+{
+  "app\\auth\\login\\page.tsx -> react-google-recaptcha": {
+    "id": 21317,
+    "files": [
+      "static/chunks/1317.bbd09c0da937e8f7.js"
+    ]
+  },
+  "app\\auth\\signup\\page.tsx -> react-google-recaptcha": {
+    "id": 21317,
+    "files": [
+      "static/chunks/1317.bbd09c0da937e8f7.js"
+    ]
+  }
+}

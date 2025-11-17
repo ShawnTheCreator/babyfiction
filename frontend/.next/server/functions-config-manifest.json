@@ -1,0 +1,1 @@
+{"version":1,"functions":{"/auth/verify":{},"/checkout/delivery/addresses":{},"/checkout/delivery/addresses/add":{},"/checkout/delivery/addresses/update/[id]":{},"/auth/signup":{},"/checkout":{},"/checkout/review":{}}}

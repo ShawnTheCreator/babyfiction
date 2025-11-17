@@ -394,7 +394,8 @@ export const forgotPassword = async (req, res, next) => {
       await sendPasswordResetEmail(
         user.email,
         resetToken,
-        user.firstName
+        user.firstName,
+        req
       );
     } catch (emailError) {
       console.error('Failed to send password reset email:', emailError);

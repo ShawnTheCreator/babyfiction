@@ -57,6 +57,45 @@ export function buildSignature(fields, passphrase) {
   return crypto.createHash('md5').update(pfOutput, 'utf8').digest('hex');
 }
 
+export function buildSignatureDebug(fields, passphrase) {
+  const orderedKeys = [
+    'merchant_id',
+    'merchant_key',
+    'return_url',
+    'cancel_url',
+    'notify_url',
+    'name_first',
+    'name_last',
+    'email_address',
+    'm_payment_id',
+    'amount',
+    'item_name',
+    'item_description',
+  ];
+
+  let pfOutput = '';
+  for (const key of orderedKeys) {
+    const raw = fields[key];
+    if (raw !== undefined && raw !== null) {
+      const val = String(raw).trim();
+      if (val !== '') {
+        const encoded = encodeURIComponent(val).replace(/%20/g, '+');
+        pfOutput += `${key}=${encoded}&`;
+      }
+    }
+  }
+  if (pfOutput.endsWith('&')) {
+    pfOutput = pfOutput.slice(0, -1);
+  }
+  if (passphrase && String(passphrase).trim() !== '') {
+    const encodedPass = encodeURIComponent(String(passphrase).trim()).replace(/%20/g, '+');
+    pfOutput += `&passphrase=${encodedPass}`;
+  }
+
+  const signature = crypto.createHash('md5').update(pfOutput, 'utf8').digest('hex');
+  return { signature, raw: pfOutput };
+}
+
 export function verifySignature(payload = {}, passphrase = '') {
   // Rebuild signature from payload:
   // - Exclude 'signature'
